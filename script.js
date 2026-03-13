@@ -16,5 +16,5 @@ console.log('Website TUB Projeto carregado com sucesso!');
 
 // Botão "Começar"
 document.querySelector('.btn1').addEventListener('click', function() {
-    alert('Entraste na ilha do Epstein com sucesso');
+    alert('Conseguiste');
 });
