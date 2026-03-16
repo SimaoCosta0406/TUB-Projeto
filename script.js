@@ -15,7 +15,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 console.log('Website TUB Projeto carregado com sucesso!');
 
 // Botão "Começar"
-document.querySelector('.btn1').addEventListener('click', function() {
+document.querySelector('.btn3')?.addEventListener('click', function() {
     alert('Conseguiste');
 });
 

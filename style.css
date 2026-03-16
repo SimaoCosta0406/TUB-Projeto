@@ -8,6 +8,7 @@ body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
     color: #000;
+    background-color: #004A6F;
 }
 
 .container {
@@ -18,12 +19,13 @@ body {
 
 /* Navbar */
 .navbar {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    background: linear-gradient(135deg, #017CB7 0%, #017CB7 100%);
     color: white;
     padding: 1rem 0;
     position: sticky;
     top: 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
 }
 
 .navbar .container {
@@ -36,6 +38,7 @@ body {
     height: 60px;  /* Altura da imagem */
     width: auto;   /* Largura automática */
     object-fit: contain;  /* Mantém proporções */
+    filter: brightness(0) invert(1);
 }
 .nav-links {
     display: flex;
@@ -44,7 +47,7 @@ body {
 }
 
 .nav-links a {
-    color: black;
+    color: white;
     text-decoration: none;
     transition: 0.3s;
 }
@@ -59,7 +62,18 @@ body {
     background: linear-gradient(135deg, #017CB7 0%, #017CB7 100%);
     color: white;
     padding: 6rem 0;
-    text-align: center;
+    text-align: right;
+}
+
+#home.hero {
+    background: linear-gradient(135deg, rgba(1, 124, 183, 0.1) 0%, rgba(1, 124, 183, 0.1) 100%),
+                url('social_media_img.jpg') center/cover no-repeat;
+    padding: 10rem 0 !important;
+    min-height: 500px;
+}
+
+#login {
+    text-align: center !important;
 }
 
 .hero h2 {
@@ -92,6 +106,22 @@ body {
     font-size: 1.5rem;
     cursor: pointer;
     transition: 0.3s;
+    display: block;
+    margin: 1rem auto 0;
+}
+
+.btn3 {
+    background-color: #FF6B6B;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    display: block;
+    margin-top: 1rem;
+    margin-left: auto;
 }
 
 .btn:hover {
@@ -102,26 +132,52 @@ body {
 /* About Section */
 .about {
     padding: 4rem 0;
-    background-color: #f4f4f4;
+    background-color: #004A6F;
     text-align: center;
+    color: white;
 }
 
 .about h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    color: #667eea;
+    color: white;
 }
 
 /* Contact Section */
 .contact {
     padding: 4rem 0;
+    background-color: #004A6F;
     text-align: center;
+    color: white;
 }
 
 .contact h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    color: ##017CB7;
+    color: white;
+}
+
+/* Card Section */
+.card-box {
+    background-color: rgba(0, 136, 204, 0.7);
+    padding: 2rem;
+    border-radius: 10px;
+    margin: 1rem auto;
+    max-width: 600px;
+}
+
+/* Card Full Width */
+.card-full {
+    background-color: rgba(0, 136, 204, 0.7);
+    padding: 2rem;
+    border-radius: 0;
+    margin: 0;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
 }
 
 /* Footer */
@@ -147,4 +203,9 @@ footer {
     .hero p {
         font-size: 1rem;
     }
+}
+
+/* Leaflet controls */
+.leaflet-control-zoom {
+    z-index: 1001 !important;
 }
