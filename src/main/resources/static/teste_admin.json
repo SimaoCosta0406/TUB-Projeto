@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "username": "admin_geral",
+  "nome": "Administrador do Sistema",
+  "role": "ADMIN",
+  "verticais_acesso": ["todas"],
+  "permissoes": [
+    "ver_horarios",
+    "editar_horarios",
+    "ver_contagem_passageiros",
+    "gerir_autocarros",
+    "gerir_utilizadores"
+  ]
+}

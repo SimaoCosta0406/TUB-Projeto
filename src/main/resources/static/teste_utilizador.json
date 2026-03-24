@@ -1,0 +1,10 @@
+{
+  "id": 2,
+  "username": "user_comum",
+  "nome": "Passageiro",
+  "role": "USER",
+  "verticais_acesso": ["horarios"],
+  "permissoes": [
+    "ver_horarios"
+  ]
+}
