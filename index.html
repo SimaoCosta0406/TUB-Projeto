@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUB Projeto</title>
+    <title>TUB Projeto - Início</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo">
+            <img src="transferir.png" class="logo" alt="Logo">
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">Sobre</a></li>
-                <li><a href="#contact">Contacto</a></li>
-                <li id="nav-login"><a href="#login">Login</a></li>
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#about">Sobre</a></li>
+                <li><a href="index.html#contact">Contacto</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;"><a href="#" onclick="fazerLogout()">Sair</a></li>
-                <li><a href="#mapa">Mapa</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
             </ul>
         </div>
     </nav>
@@ -38,23 +35,6 @@
         </div>
     </section>
 
-    <!-- SECÇÃO DO MAPA -->
-    <section id="mapa" class="about">
-        <div class="card-full">
-            <h2>Mapa dos Painéis</h2>
-            <div id="map" style="height: 500px; width: 100%;"></div>
-        </div>
-    </section>
-
-    <!-- CONTAGEM DE PASSAGEIROS -->
-    <section id="contagem" class="about" style="display: none;">
-        <div class="container card-box" style="border: 2px solid red;">
-            <h2>Contagem de Passageiros</h2>
-            <p>Acesso Restrito: Apenas Administradores.</p>
-            <p>Total de passageiros hoje: <strong>1.452</strong></p>
-        </div>
-    </section>
-
     <section id="contact" class="contact">
         <div class="container card-box">
             <h2>Contactos</h2>
@@ -63,30 +43,9 @@
         </div>
     </section>
 
-    <!-- SECÇÃO DO LOGIN -->
-    <section id="login" class="hero">
-        <div class="container" id="login-form">
-            <h2>Boas, faz o login </h2>
-            <p>pass</p>
-            
-            <input type="email" id="emailInput" placeholder="Email (admin@tub.pt)" style="padding: 10px; margin-bottom: 10px;"><br>
-            <input type="password" id="passwordInput" placeholder="Palavra-passe" style="padding: 10px; margin-bottom: 10px;"><br>
-            <p id="erro-msg" style="color: #ff4d4d; display: none; margin-bottom: 10px;">Dados incorretos!</p>
-            
-            <button class="btn2" onclick="validarLogin()">LogIn</button>
-        </div>
-
-        <div class="container" id="login-success" style="display: none;">
-            <h2 id="mensagem-boasvindas">Sessão Iniciada!</h2>
-        </div>
-    </section>
-
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script src="script.js"></script>
 </body>
