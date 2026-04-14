@@ -1,4 +1,4 @@
-package dai.boot.projeto;
+package dai.boot.projeto.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
