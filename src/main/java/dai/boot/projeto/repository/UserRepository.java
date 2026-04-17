@@ -1,6 +1,6 @@
 package dai.boot.projeto.repository;
 
-import dai.boot.projeto.model.User;
+import dai.boot.projeto.entities.User; // Caminho correto agora
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;

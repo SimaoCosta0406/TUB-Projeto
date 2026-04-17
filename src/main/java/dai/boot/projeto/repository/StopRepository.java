@@ -1,6 +1,6 @@
 package dai.boot.projeto.repository;
 
-import com.projeto.entities.Stop;
+import dai.boot.projeto.entities.Stop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

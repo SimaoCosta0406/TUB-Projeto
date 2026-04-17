@@ -1,4 +1,4 @@
-package dai.boot.projeto.model;
+package dai.boot.projeto.entities;
 
 import jakarta.persistence.*;
 
