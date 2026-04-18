@@ -26,10 +26,8 @@ if (btnComecar) {
 
 ///////////////////////////////MAPA DE BRAGA///////////////////////////
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Verificar acessos em todas as páginas
     verificarAcessos();
 
-    // 2. Correr o mapa apenas se estivermos na página do mapa
     const mapContainer = document.getElementById("map");
     if (mapContainer) {
         const map = L.map("map").setView([41.5454, -8.4265], 13);
@@ -38,20 +36,83 @@ document.addEventListener("DOMContentLoaded", function () {
             attribution: "&copy; OpenStreetMap contributors"
         }).addTo(map);
 
-        const panels = [
-            { id: 1, location: "Avenida Central", lat: 41.5501, lon: -8.4213 },
-            { id: 2, location: "Universidade do Minho", lat: 41.5607, lon: -8.3975 },
-            { id: 3, location: "Braga Parque", lat: 41.5582, lon: -8.4048 },
-            { id: 4, location: "Estação de Braga", lat: 41.5471, lon: -8.4343 },
-            { id: 5, location: "Hospital de Braga", lat: 41.5618, lon: -8.3996 },
-            { id: 6, location: "Bom Jesus", lat: 41.5547, lon: -8.3772 },
-        ];
+        let marcadores = [];
+        let stopsGuardados = [];
 
-        panels.forEach(panel => {
-            L.marker([panel.lat, panel.lon])
-                .addTo(map)
-                .bindPopup(panel.location);
-        });
+        function limparMarcadores() {
+            marcadores.forEach(marcador => map.removeLayer(marcador));
+            marcadores = [];
+        }
+
+        async function carregarStops() {
+            try {
+                const resposta = await fetch("/api/stops");
+                const stops = await resposta.json();
+
+                stopsGuardados = stops;
+                limparMarcadores();
+
+                stops.forEach(stop => {
+                    if (stop.latitude != null && stop.longitude != null) {
+                        const marcador = L.marker([stop.latitude, stop.longitude])
+                            .addTo(map)
+                            .bindPopup(stop.name);
+
+                        marcadores.push(marcador);
+                    }
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar stops do mapa:", erro);
+            }
+        }
+
+        function pesquisarParagem() {
+            const input = document.getElementById("searchStop");
+            if (!input) return;
+
+            const termo = input.value.trim().toLowerCase();
+
+            if (!termo) {
+                alert("Escreve o nome de uma paragem.");
+                return;
+            }
+
+            const stopEncontrado = stopsGuardados.find(stop =>
+                stop.name &&
+                stop.latitude != null &&
+                stop.longitude != null &&
+                stop.name.toLowerCase().includes(termo)
+            );
+
+            if (stopEncontrado) {
+                map.setView([stopEncontrado.latitude, stopEncontrado.longitude], 16);
+
+                const popup = L.popup()
+                    .setLatLng([stopEncontrado.latitude, stopEncontrado.longitude])
+                    .setContent(`<strong>${stopEncontrado.name}</strong>`)
+                    .openOn(map);
+            } else {
+                alert("Paragem não encontrada.");
+            }
+        }
+
+        carregarStops();
+        setInterval(carregarStops, 5000);
+
+        const botaoPesquisa = document.getElementById("searchBtn");
+        const inputPesquisa = document.getElementById("searchStop");
+
+        if (botaoPesquisa) {
+            botaoPesquisa.addEventListener("click", pesquisarParagem);
+        }
+
+        if (inputPesquisa) {
+            inputPesquisa.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    pesquisarParagem();
+                }
+            });
+        }
     }
 });
 /////////////////////////////////////////////FIM MAPA DE braga//////////////////////////////////////////
