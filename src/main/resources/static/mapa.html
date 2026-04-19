@@ -21,7 +21,24 @@
             </ul>
         </div>
     </nav>
+    <section id="adminStopsSection" class="about" style="display: none;">
+        <div class="container card-box">
+            <h2>Gerir Paragens</h2>
 
+            <input type="hidden" id="stopId">
+
+            <input type="text" id="stopName" placeholder="Nome da paragem" style="padding: 10px; margin: 5px;">
+            <input type="number" step="any" id="stopLatitude" placeholder="Latitude" style="padding: 10px; margin: 5px;">
+            <input type="number" step="any" id="stopLongitude" placeholder="Longitude" style="padding: 10px; margin: 5px;">
+
+            <div style="margin-top: 10px;">
+                <button class="btn2" onclick="adicionarOuEditarParagem()">Guardar</button>
+                <button class="btn2" onclick="limparFormularioParagem()">Limpar</button>
+            </div>
+
+            <p style="margin-top: 15px;">Clica num marcador para carregar os dados da paragem e editar.</p>
+        </div>
+    </section>
     <section class="about">
         <div class="card-full">
             <h2>Mapa dos Painéis</h2>
