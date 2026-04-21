@@ -158,6 +158,7 @@ function verificarAcessos() {
     const navLogin   = document.getElementById('nav-login');
     const navLogout  = document.getElementById('nav-logout');
     const navAlarmes = document.getElementById('nav-alarmes');
+    const navMonitorizacao = document.getElementById('nav-monitorizacao');
 
     if (utilizadorGuardado) {
         if (navLogin)  navLogin.style.display  = 'none';
@@ -166,11 +167,13 @@ function verificarAcessos() {
         const utilizador = JSON.parse(utilizadorGuardado);
         if (utilizador.role === 'ADMIN') {
             if (navAlarmes) navAlarmes.style.display = 'inline-block';
+            if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
         }
     } else {
         if (navLogin)  navLogin.style.display  = 'inline-block';
         if (navLogout) navLogout.style.display = 'none';
         if (navAlarmes) navAlarmes.style.display = 'none';
+        if (navMonitorizacao) navMonitorizacao.style.display = 'none';
     }
 }
 
