@@ -10,61 +10,66 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo" alt="Logo">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="index.html#about">Sobre</a></li>
                 <li><a href="index.html#contact">Contacto</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
-                <li id="nav-logout" style="display: none;"><a href="#" onclick="fazerLogout()">Sair</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
                 <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="index.html#alarmes">Alarmes</a>
+                </li>
             </ul>
         </div>
     </nav>
-    <section id="adminStopsSection" class="about" style="display: none;">
+
+    <!-- Secção Admin: Gerir Paragens (só visível para ADMIN) -->
+    <section id="adminStopsSection" style="display: none; padding: 6rem 0 2rem;">
         <div class="container card-box">
             <h2>Gerir Paragens</h2>
-
             <input type="hidden" id="stopId">
-
-            <input type="text" id="stopName" placeholder="Nome da paragem" style="padding: 10px; margin: 5px;">
-            <input type="number" step="any" id="stopLatitude" placeholder="Latitude" style="padding: 10px; margin: 5px;">
-            <input type="number" step="any" id="stopLongitude" placeholder="Longitude" style="padding: 10px; margin: 5px;">
-
-            <div style="margin-top: 10px;">
-                <button class="btn2" onclick="adicionarOuEditarParagem()">Guardar</button>
-                <button class="btn2" onclick="limparFormularioParagem()">Limpar</button>
+            <div class="admin-form">
+                <h3>Dados da Paragem</h3>
+                <input type="text"   id="stopName"      placeholder="Nome da paragem" />
+                <input type="number" id="stopLatitude"  placeholder="Latitude"  step="any" />
+                <input type="number" id="stopLongitude" placeholder="Longitude" step="any" />
+                <div style="margin-top: 1rem;">
+                    <button onclick="adicionarOuEditarParagem()">Guardar</button>
+                    <button onclick="limparFormularioParagem()" style="background: var(--navy-light); color: var(--muted); border: 1px solid rgba(255,255,255,0.1);">Limpar</button>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">
+                    Clica num marcador no mapa para pré-preencher os dados.
+                </p>
             </div>
-
-            <p style="margin-top: 15px;">Clica num marcador para carregar os dados da paragem e editar.</p>
         </div>
     </section>
-    <section class="about">
+
+    <!-- Mapa principal -->
+    <section class="map-section">
         <div class="card-full">
             <h2>Mapa dos Painéis</h2>
-            <div style="margin-bottom: 20px; text-align: center;">
+            <div class="map-search">
                 <input
                     type="text"
                     id="searchStop"
                     placeholder="Pesquisar paragem..."
-                    style="padding: 10px; width: 300px; border-radius: 8px; border: none; font-size: 16px;"
-                >
-                <button
-                    id="searchBtn"
-                    style="padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
-                >
-                    Procurar
-                </button>
+                />
+                <button id="searchBtn">Procurar</button>
             </div>
-            <div id="map" style="height: 500px; width: 100%;"></div>
+            <div id="map"></div>
         </div>
     </section>
 
-    <section id="contagem" class="about" style="display: none;">
-        <div class="container card-box" style="border: 2px solid red;">
+    <!-- Contagem de Passageiros (restrito) -->
+    <section id="contagem" style="display: none; padding: 3rem 0;">
+        <div class="container card-box">
             <h2>Contagem de Passageiros</h2>
-            <p>Acesso Restrito: Apenas Administradores.</p>
-            <p>Total de passageiros hoje: <strong>1.452</strong></p>
+            <p style="color: var(--muted); margin-bottom: 1rem;">Acesso restrito — apenas administradores.</p>
+            <p>Total de passageiros hoje: <strong style="color: var(--amber); font-size: 1.4rem;">1.452</strong></p>
         </div>
     </section>
 
@@ -74,5 +79,22 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
+
+    <!-- Mostrar secção admin se o utilizador for ADMIN -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (utilizadorGuardado) {
+                const utilizador = JSON.parse(utilizadorGuardado);
+                if (utilizador.role === 'ADMIN') {
+                    const adminSection = document.getElementById('adminStopsSection');
+                    if (adminSection) adminSection.style.display = 'block';
+
+                    const contagemSection = document.getElementById('contagem');
+                    if (contagemSection) contagemSection.style.display = 'block';
+                }
+            }
+        });
+    </script>
 </body>
 </html>
