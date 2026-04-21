@@ -1,28 +1,45 @@
 async function carregarDadosOcupacao() {
     try {
-        const response = await fetch('/api/panels');
-        const panels = await response.json();
+        // Fetch panels
+        const panelsResponse = await fetch('/api/panels');
+        const panels = await panelsResponse.json();
+        const panelMap = {};
+        panels.forEach(panel => {
+            panelMap[panel.id] = panel.location;
+        });
+
+        // Fetch all passenger counts
+        const countsResponse = await fetch('/api/passengers/all');
+        const counts = await countsResponse.json();
+
+        // Group by panelId and get the latest
+        const latestCounts = {};
+        counts.forEach(count => {
+            if (!latestCounts[count.panelId] || new Date(count.timestamp) > new Date(latestCounts[count.panelId].timestamp)) {
+                latestCounts[count.panelId] = count;
+            }
+        });
 
         const tabela = document.getElementById('tabela-ocupacao');
         tabela.innerHTML = ''; // Limpar antes de atualizar
 
-        panels.forEach(panel => {
-            // Gerar ocupação aleatória entre 0 e 60
-            const ocupacao = Math.floor(Math.random() * 61);
-
-            // Deteção de anomalias
-            let status = ocupacao > 50 ? "Lotação Elevada" : "Normal";
-            if (ocupacao < 0) status = "Erro: Dados Inconsistentes";
-
+        Object.values(latestCounts).forEach(count => {
+            const location = panelMap[count.panelId] || `Painel ${count.panelId}`;
             tabela.innerHTML += `
                 <tr>
-                    <td>${panel.location} (ID: ${panel.id})</td>
-                    <td><b>${ocupacao}</b> passageiros</td>
-                    <td>${status}</td>
+                    <td>${location} (ID: ${count.panelId})</td>
+                    <td>${count.line}</td>
+                    <td>${count.entryCount}</td>
+                    <td>${count.exitCount}</td>
+                    <td><b>${count.occupancy}</b></td>
                 </tr>
             `;
         });
+
+        // Hide alert if successful
+        document.getElementById('alerta-sensor').style.display = 'none';
     } catch (error) {
+        console.error('Erro ao carregar dados:', error);
         // Falha na receção
         document.getElementById('alerta-sensor').style.display = 'block';
     }
