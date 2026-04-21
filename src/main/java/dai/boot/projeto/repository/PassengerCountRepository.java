@@ -10,5 +10,6 @@ public interface PassengerCountRepository extends JpaRepository<PassengerCount, 
     
     
     List<PassengerCount> findByPanelIdAndTimestampBetween(Long panelId, LocalDateTime from, LocalDateTime to);
-}
 
+    List<PassengerCount> findByTimestampAfter(LocalDateTime timestamp);
+}

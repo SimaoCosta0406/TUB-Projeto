@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Monitorização</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#about">Sobre</a></li>
+                <li><a href="index.html#contact">Contacto</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li><a href="monitorizacao.html">Monitorização</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="map-section">
+        <div class="card-full">
+            <h2>Monitorização de Ocupação</h2>
+
+            <!-- Alerta de falha de sensores -->
+            <div id="alerta-sensor" style="display: none; background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.35); border-radius: 8px; color: #ff8f85; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                ⚠️ Falha detetada nos sensores!
+            </div>
+
+            <h3 style="font-family: var(--font-display); color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;">
+                Estado Atual dos Painéis
+            </h3>
+
+            <table id="table-ocupacao">
+                <thead>
+                    <tr>
+                        <th>Localização</th>
+                        <th>Linha</th>
+                        <th>Entradas</th>
+                        <th>Saídas</th>
+                        <th>Ocupação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-ocupacao">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--muted); padding: 2rem;">
+                            A carregar dados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        async function carregarDadosOcupacao() {
+            try {
+                // Buscar painéis para obter as localizações
+                const panelsResponse = await fetch('/api/panels');
+                const panels = await panelsResponse.json();
+                const panelMap = {};
+                panels.forEach(panel => {
+                    panelMap[panel.id] = panel.location;
+                });
+
+                // Buscar todas as contagens de passageiros
+                const countsResponse = await fetch('/api/passengers/all');
+                const counts = await countsResponse.json();
+
+                // Agrupar por painel e calcular ocupação total
+                const occupancyByPanel = {};
+                counts.forEach(count => {
+                    if (!occupancyByPanel[count.panelId]) {
+                        occupancyByPanel[count.panelId] = {
+                            panelId:        count.panelId,
+                            location:       panelMap[count.panelId] || `Painel ${count.panelId}`,
+                            line:           count.line,
+                            totalEntradas:  0,
+                            totalSaidas:    0,
+                            totalOccupancy: 0
+                        };
+                    }
+                    occupancyByPanel[count.panelId].totalEntradas  += count.entryCount  || 0;
+                    occupancyByPanel[count.panelId].totalSaidas    += count.exitCount   || 0;
+                    occupancyByPanel[count.panelId].totalOccupancy += (count.entryCount || 0) - (count.exitCount || 0);
+                });
+
+                const tabela = document.getElementById('tabela-ocupacao');
+                tabela.innerHTML = '';
+
+                const paineis = Object.values(occupancyByPanel);
+
+                if (paineis.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">Sem dados disponíveis.</td></tr>';
+                    return;
+                }
+
+                paineis.forEach(panel => {
+                    const ocup = panel.totalOccupancy;
+                    const cor  = ocup > 40 ? 'var(--danger)' : ocup > 20 ? 'var(--warning)' : 'var(--success)';
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${panel.location} (ID: ${panel.panelId})</td>
+                            <td>${panel.line ?? '—'}</td>
+                            <td>${panel.totalEntradas}</td>
+                            <td>${panel.totalSaidas}</td>
+                            <td><strong style="color: ${cor}">${ocup}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('alerta-sensor').style.display = 'none';
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('alerta-sensor').style.display = 'block';
+            }
+        }
+
+        carregarDadosOcupacao();
+        setInterval(carregarDadosOcupacao, 2000);
+    </script>
+</body>
+</html>

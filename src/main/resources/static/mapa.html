@@ -15,13 +15,14 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="index.html#about">Sobre</a></li>
                 <li><a href="index.html#contact">Contacto</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
                 </li>
-                <li><a href="mapa.html">Mapa</a></li>
                 <li id="nav-alarmes" style="display: none;">
-                    <a href="index.html#alarmes">Alarmes</a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
                 </li>
             </ul>
         </div>
@@ -53,18 +54,14 @@
         <div class="card-full">
             <h2>Mapa dos Painéis</h2>
             <div class="map-search">
-                <input
-                    type="text"
-                    id="searchStop"
-                    placeholder="Pesquisar paragem..."
-                />
+                <input type="text" id="searchStop" placeholder="Pesquisar paragem..." />
                 <button id="searchBtn">Procurar</button>
             </div>
             <div id="map"></div>
         </div>
     </section>
 
-    <!-- Contagem de Passageiros (restrito) -->
+    <!-- Contagem de Passageiros (restrito a ADMIN) -->
     <section id="contagem" style="display: none; padding: 3rem 0;">
         <div class="container card-box">
             <h2>Contagem de Passageiros</h2>
@@ -80,7 +77,6 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
 
-    <!-- Mostrar secção admin se o utilizador for ADMIN -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
@@ -89,7 +85,6 @@
                 if (utilizador.role === 'ADMIN') {
                     const adminSection = document.getElementById('adminStopsSection');
                     if (adminSection) adminSection.style.display = 'block';
-
                     const contagemSection = document.getElementById('contagem');
                     if (contagemSection) contagemSection.style.display = 'block';
                 }
