@@ -53,6 +53,11 @@ public class PassengerController {
         return passengerService.getAllCounts();
     }
 
+    @GetMapping("/latest")
+    public Map<Long, PassengerCount> getLatestCounts() {
+        return passengerService.getLatestCountsPerPanel();
+    }
+
     // UC6 - Passo 5: O sistema apresenta a ocupação atual [cite: 25]
     @GetMapping("/live-status")
     public ResponseEntity<List<PassengerCount>> getLiveOccupancy() {

@@ -388,6 +388,82 @@ img { max-width: 100%; display: block; }
     color: var(--white);
 }
 
+/* Tabela Ocupacao */
+#table-ocupacao {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--navy);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+#table-ocupacao thead th {
+    background: var(--navy-light);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 1.5rem 2rem; /* Increased padding for more separation */
+    text-align: left;
+    border-bottom: 1px solid rgba(245,166,35,0.1);
+}
+
+#table-ocupacao tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background var(--transition);
+}
+
+#table-ocupacao tbody tr:hover {
+    background: rgba(245,166,35,0.04);
+}
+
+#table-ocupacao tbody td {
+    padding: 1.2rem 2rem; /* Increased padding for more separation */
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
+/* Tabela Ocupacao */
+#table-ocupacao {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--navy);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+#table-ocupacao thead th {
+    background: var(--navy-light);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 1.5rem 2rem; /* Increased padding for more separation */
+    text-align: left;
+    border-bottom: 1px solid rgba(245,166,35,0.1);
+}
+
+#table-ocupacao tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background var(--transition);
+}
+
+#table-ocupacao tbody tr:hover {
+    background: rgba(245,166,35,0.04);
+}
+
+#table-ocupacao tbody td {
+    padding: 1.2rem 2rem; /* Increased padding for more separation */
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
 /* Cores de severidade inline */
 .severity-high   { color: var(--danger);  font-weight: 600; }
 .severity-medium { color: var(--warning); font-weight: 600; }

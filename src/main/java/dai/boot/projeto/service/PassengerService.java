@@ -50,6 +50,18 @@ public class PassengerService {
         return repository.findAll();
     }
 
+    public Map<Long, PassengerCount> getLatestCountsPerPanel() {
+        List<PassengerCount> allCounts = repository.findAll();
+        Map<Long, PassengerCount> latestPerPanel = new HashMap<>();
+        for (PassengerCount count : allCounts) {
+            PassengerCount existing = latestPerPanel.get(count.getPanelId());
+            if (existing == null || count.getTimestamp().isAfter(existing.getTimestamp())) {
+                latestPerPanel.put(count.getPanelId(), count);
+            }
+        }
+        return latestPerPanel;
+    }
+
     public List<PassengerCount> calculateCurrentOccupancy() {
         // Assuming this returns the latest counts per panel or something
         // For simplicity, return all recent counts

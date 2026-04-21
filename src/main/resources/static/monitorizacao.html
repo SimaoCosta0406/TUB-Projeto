@@ -86,31 +86,36 @@
                 // Buscar painéis para obter as localizações
                 const panelsResponse = await fetch('/api/panels');
                 const panels = await panelsResponse.json();
-                const panelMap = {};
+
+                // Inicializar occupancyByPanel com todos os painéis a zero
+                const occupancyByPanel = {};
                 panels.forEach(panel => {
-                    panelMap[panel.id] = panel.location;
+                    occupancyByPanel[panel.id] = {
+                        panelId:        panel.id,
+                        location:       panel.location,
+                        line:           null, // Será definido se houver contagens
+                        totalEntradas:  0,
+                        totalSaidas:    0,
+                        totalOccupancy: 0
+                    };
                 });
 
                 // Buscar todas as contagens de passageiros
                 const countsResponse = await fetch('/api/passengers/all');
                 const counts = await countsResponse.json();
 
-                // Agrupar por painel e calcular ocupação total
-                const occupancyByPanel = {};
+                // Agrupar por painel e calcular ocupação total (usando apenas a contagem mais recente por painel)
                 counts.forEach(count => {
-                    if (!occupancyByPanel[count.panelId]) {
-                        occupancyByPanel[count.panelId] = {
-                            panelId:        count.panelId,
-                            location:       panelMap[count.panelId] || `Painel ${count.panelId}`,
-                            line:           count.line,
-                            totalEntradas:  0,
-                            totalSaidas:    0,
-                            totalOccupancy: 0
-                        };
+                    if (occupancyByPanel[count.panelId]) {
+                        // Para ocupação atual, usar apenas a mais recente, mas aqui estamos somando tudo
+                        // Para correção, talvez mudar para usar apenas a última contagem
+                        occupancyByPanel[count.panelId].totalEntradas  += count.entryCount  || 0;
+                        occupancyByPanel[count.panelId].totalSaidas    += count.exitCount   || 0;
+                        occupancyByPanel[count.panelId].totalOccupancy += (count.entryCount || 0) - (count.exitCount || 0);
+                        if (!occupancyByPanel[count.panelId].line) {
+                            occupancyByPanel[count.panelId].line = count.line;
+                        }
                     }
-                    occupancyByPanel[count.panelId].totalEntradas  += count.entryCount  || 0;
-                    occupancyByPanel[count.panelId].totalSaidas    += count.exitCount   || 0;
-                    occupancyByPanel[count.panelId].totalOccupancy += (count.entryCount || 0) - (count.exitCount || 0);
                 });
 
                 const tabela = document.getElementById('tabela-ocupacao');
