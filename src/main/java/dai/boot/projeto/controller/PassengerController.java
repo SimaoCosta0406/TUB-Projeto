@@ -4,6 +4,7 @@ import dai.boot.projeto.entities.PassengerCount;
 import dai.boot.projeto.service.PassengerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -46,6 +47,19 @@ public class PassengerController {
     public Map<String, Object> getSummary(@PathVariable Long panelId) {
         return passengerService.getSummary(panelId);
     }
+   
+    @GetMapping("/all")
+    public List<PassengerCount> getAll() {
+        return passengerService.getAllCounts();
+    }
+
+    // UC6 - Passo 5: O sistema apresenta a ocupação atual [cite: 25]
+    @GetMapping("/live-status")
+    public ResponseEntity<List<PassengerCount>> getLiveOccupancy() {
+        // Retorna a lista de veículos com a ocupação calculada mais recente
+        return ResponseEntity.ok(passengerService.calculateCurrentOccupancy());
+    }
 }
+
 
 

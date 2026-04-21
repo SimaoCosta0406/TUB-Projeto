@@ -12,26 +12,30 @@ async function carregarDadosOcupacao() {
         const countsResponse = await fetch('/api/passengers/all');
         const counts = await countsResponse.json();
 
-        // Group by panelId and get the latest
-        const latestCounts = {};
+        // Group by panelId and calculate total occupancy
+        const occupancyByPanel = {};
         counts.forEach(count => {
-            if (!latestCounts[count.panelId] || new Date(count.timestamp) > new Date(latestCounts[count.panelId].timestamp)) {
-                latestCounts[count.panelId] = count;
+            if (!occupancyByPanel[count.panelId]) {
+                occupancyByPanel[count.panelId] = {
+                    location: panelMap[count.panelId] || `Painel ${count.panelId}`,
+                    line: count.line,
+                    totalOccupancy: 0
+                };
             }
+            occupancyByPanel[count.panelId].totalOccupancy += count.entryCount - count.exitCount;
         });
 
         const tabela = document.getElementById('tabela-ocupacao');
         tabela.innerHTML = ''; // Limpar antes de atualizar
 
-        Object.values(latestCounts).forEach(count => {
-            const location = panelMap[count.panelId] || `Painel ${count.panelId}`;
+        Object.values(occupancyByPanel).forEach(panel => {
             tabela.innerHTML += `
                 <tr>
-                    <td>${location} (ID: ${count.panelId})</td>
-                    <td>${count.line}</td>
-                    <td>${count.entryCount}</td>
-                    <td>${count.exitCount}</td>
-                    <td><b>${count.occupancy}</b></td>
+                    <td>${panel.location} (ID: ${panel.panelId})</td>
+                    <td>${panel.line}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><b>${panel.totalOccupancy}</b></td>
                 </tr>
             `;
         });
@@ -48,5 +52,5 @@ async function carregarDadosOcupacao() {
 // Carregar dados iniciais
 carregarDadosOcupacao();
 
-// Atualiza a cada 10 segundos
-setInterval(carregarDadosOcupacao, 10000);
+// Atualiza a cada 2 segundos
+setInterval(carregarDadosOcupacao, 2000);
