@@ -35,7 +35,7 @@ public class PassengerCount {
     @PrePersist
     @PreUpdate
     public void calculateOccupancyValue() {
-        this.occupancy = this.entryCount = this.exitCount;
+        this.occupancy = this.entryCount - this.exitCount;
     }
     public Long getId() {
         return id;

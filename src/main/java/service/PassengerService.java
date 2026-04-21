@@ -45,5 +45,16 @@ public class PassengerService {
         
         return summary;
     }
+
+    public List<PassengerCount> getAllCounts() {
+        return repository.findAll();
+    }
+
+    public List<PassengerCount> calculateCurrentOccupancy() {
+        // Assuming this returns the latest counts per panel or something
+        // For simplicity, return all recent counts
+        LocalDateTime recent = LocalDateTime.now().minusHours(1);
+        return repository.findByTimestampAfter(recent);
+    }
 }
 

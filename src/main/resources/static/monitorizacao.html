@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Monitorização</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo">
+            <ul class="nav-links">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#about">Sobre</a></li>
+                <li><a href="index.html#contact">Contacto</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;"><a href="#" onclick="fazerLogout()">Sair</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li><a href="monitorizacao.html">Monitorização</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="about">
+        <div class="container">
+            <h2>Monitorização de Ocupação - TUB</h2>
+            <div id="alerta-sensor" class="alert alert-danger" style="display:none;">
+                ⚠️ Falha detetada nos sensores!
+            </div>
+
+            <h3>Controlo de Passageiros</h3>
+            <form id="passenger-form">
+                <label for="panelId">ID do Painel:</label>
+                <input type="number" id="panelId" required><br>
+
+                <label for="line">Linha:</label>
+                <input type="text" id="line" required><br>
+
+                <label for="entryCount">Entradas:</label>
+                <input type="number" id="entryCount" required><br>
+
+                <label for="exitCount">Saídas:</label>
+                <input type="number" id="exitCount" required><br>
+
+                <button type="submit">Submeter Contagem</button>
+            </form>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Autocarro</th>
+                        <th>Lotação Atual</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-ocupacao">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="monitor.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
