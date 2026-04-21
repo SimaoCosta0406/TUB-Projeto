@@ -21,8 +21,13 @@ public class PageController {
         return "forward:/mapa.html";
     }
 
-    @GetMapping("/monitorizacao")
-    public String monitorizacao() {
-        return "forward:/monitorizacao.html";
+    @GetMapping("/veiculos")
+    public String veiculos() {
+        return "forward:/veiculos.html";
+    }
+
+    @GetMapping("/rotas")
+    public String rotas() {
+        return "forward:/rotas.html";
     }
 }

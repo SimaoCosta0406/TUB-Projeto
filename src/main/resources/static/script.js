@@ -1,4 +1,4 @@
-// Smooth scroll (mantido para compatibilidade, mas navegação agora usa mostrarSecao)
+// Smooth scroll
 document.querySelectorAll('a[href^="#"], a[href^="index.html#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const targetId = this.getAttribute('href').split('#')[1];
@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 const resposta = await fetch("/api/stops");
                 const stops = await resposta.json();
-
                 stopsGuardados = stops;
                 limparMarcadores();
 
@@ -60,12 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <br>Latitude: ${stop.latitude}
                                     <br>Longitude: ${stop.longitude}
                                     <br><br>
-                                    <button onclick="preencherFormularioParagem(${stop.id}, '${stop.name.replace(/'/g, "\\'")}', ${stop.latitude}, ${stop.longitude})">
-                                        Editar
-                                    </button>
-                                    <button onclick="apagarParagem(${stop.id})">
-                                        Apagar
-                                    </button>
+                                    <button onclick="preencherFormularioParagem(${stop.id}, '${stop.name.replace(/'/g, "\\'")}', ${stop.latitude}, ${stop.longitude})">Editar</button>
+                                    <button onclick="apagarParagem(${stop.id})">Apagar</button>
                                 `;
                             }
                         }
@@ -129,6 +124,8 @@ async function validarLogin() {
 
     if (email === 'admin@tub.pt') {
         ficheiroParaLer = 'teste_admin.json';
+    } else if (email === 'supervisor@tub.pt') {
+        ficheiroParaLer = 'teste_supervisor.json';
     } else if (email === 'user@tub.pt') {
         ficheiroParaLer = 'teste_utilizador.json';
     } else {
@@ -155,25 +152,34 @@ function fazerLogout() {
 
 function verificarAcessos() {
     const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
-    const navLogin   = document.getElementById('nav-login');
-    const navLogout  = document.getElementById('nav-logout');
-    const navAlarmes = document.getElementById('nav-alarmes');
+    const navLogin         = document.getElementById('nav-login');
+    const navLogout        = document.getElementById('nav-logout');
+    const navAlarmes       = document.getElementById('nav-alarmes');
     const navMonitorizacao = document.getElementById('nav-monitorizacao');
+    const navVeiculos      = document.getElementById('nav-veiculos');
+    const navRotas         = document.getElementById('nav-rotas');
 
     if (utilizadorGuardado) {
         if (navLogin)  navLogin.style.display  = 'none';
         if (navLogout) navLogout.style.display = 'inline-block';
 
         const utilizador = JSON.parse(utilizadorGuardado);
-        if (utilizador.role === 'ADMIN') {
+
+        if (utilizador.role === 'ADMIN' || utilizador.role === 'SUPERVISOR') {
             if (navAlarmes) navAlarmes.style.display = 'inline-block';
+        }
+        if (utilizador.role === 'ADMIN') {
             if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
+            if (navVeiculos) navVeiculos.style.display = 'inline-block';
+            if (navRotas) navRotas.style.display = 'inline-block';
         }
     } else {
-        if (navLogin)  navLogin.style.display  = 'inline-block';
-        if (navLogout) navLogout.style.display = 'none';
-        if (navAlarmes) navAlarmes.style.display = 'none';
+        if (navLogin)         navLogin.style.display         = 'inline-block';
+        if (navLogout)        navLogout.style.display        = 'none';
+        if (navAlarmes)       navAlarmes.style.display       = 'none';
         if (navMonitorizacao) navMonitorizacao.style.display = 'none';
+        if (navVeiculos)      navVeiculos.style.display      = 'none';
+        if (navRotas)         navRotas.style.display         = 'none';
     }
 }
 
@@ -213,7 +219,6 @@ async function adicionarOuEditarParagem() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-
         if (resposta.ok) {
             alert(id ? "Paragem atualizada com sucesso." : "Paragem adicionada com sucesso.");
             limparFormularioParagem();
@@ -246,85 +251,260 @@ async function apagarParagem(id) {
 
 ///////////////////// Navegação por secções (index.html) /////////////////////
 
-// Secções que existem no index.html e podem ser mostradas/escondidas
 const SECCOES_INDEX = ['home', 'about', 'contact', 'alarmes'];
 
 function mostrarSecao(idAlvo) {
-    // Esconde todas as secções geridas
     SECCOES_INDEX.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
 
-    // Mostra a secção pedida
     const seccaoAtiva = document.getElementById(idAlvo);
     if (seccaoAtiva) {
-        // 'home' é uma section.hero, as outras são sections normais
         seccaoAtiva.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        if (idAlvo === 'alarmes') {
-            carregarDadosAlarmes();
-        }
+        if (idAlvo === 'alarmes') carregarAlarmes();
     }
 }
 
-// Inicialização: garante que home, about e contact estão visíveis ao carregar
 document.addEventListener("DOMContentLoaded", function () {
-    // Só faz a lógica de secções se estivermos no index.html
     const eIndexPage = !!document.getElementById('home');
     if (!eIndexPage) return;
-
-    // Por defeito mostra as três secções de scroll normais
-    // e esconde alarmes (já tem display:none no HTML)
     ['home', 'about', 'contact'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
     });
 });
 
-///////////////////// Alarmes /////////////////////
+///////////////////// ALARMES /////////////////////
 
-async function carregarDadosAlarmes() {
+function getRoleAtivo() {
+    const u = localStorage.getItem('utilizadorAtivo');
+    if (!u) return null;
+    return JSON.parse(u).role;
+}
+
+function getUsernameAtivo() {
+    const u = localStorage.getItem('utilizadorAtivo');
+    if (!u) return null;
+    return JSON.parse(u).nome;
+}
+
+async function carregarAlarmes() {
+    const role = getRoleAtivo();
+    if (role === 'SUPERVISOR') {
+        await carregarAlarmesParaSupervisor();
+    } else if (role === 'ADMIN') {
+        await carregarAlarmesParaAdmin();
+    }
+}
+
+// ── SUPERVISOR ──────────────────────────────────────
+
+async function carregarAlarmesParaSupervisor() {
     try {
-        const resStats = await fetch('/api/alerts/stats');
-        const stats = await resStats.json();
-        document.getElementById('count-high').innerText   = stats.HIGH   || 0;
-        document.getElementById('count-medium').innerText = stats.MEDIUM || 0;
-        document.getElementById('count-low').innerText    = stats.LOW    || 0;
+        const [resActive, resPending] = await Promise.all([
+            fetch('/api/alerts/active'),
+            fetch('/api/alerts/pending')
+        ]);
+        const active  = await resActive.json();
+        const pending = await resPending.json();
 
-        const resAlerts = await fetch('/api/alerts');
-        const alerts = await resAlerts.json();
+        const todos = [...active, ...pending];
+        document.getElementById('count-high').innerText   = todos.filter(a => a.severity === 'HIGH').length;
+        document.getElementById('count-medium').innerText = todos.filter(a => a.severity === 'MEDIUM').length;
+        document.getElementById('count-low').innerText    = todos.filter(a => a.severity === 'LOW').length;
+
         const body = document.getElementById('alerts-body');
         body.innerHTML = '';
 
-        alerts.forEach(alert => {
+        if (todos.length === 0) {
+            body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">Sem alertas pendentes.</td></tr>`;
+            return;
+        }
+
+        [...pending, ...active].forEach(alert => {
+            const isPending = alert.status === 'PENDING';
+            const motivoHtml = isPending && alert.inconsistentReason
+                ? `<div style="margin-top:0.4rem; padding:0.5rem 0.75rem; background:rgba(231,76,60,0.1); border-left:3px solid var(--danger); border-radius:4px; font-size:0.82rem; color:#ff8f85;">
+                       <strong>Motivo devolvido:</strong> ${alert.inconsistentReason}
+                   </div>`
+                : '';
+
+            const badgeStatus = isPending
+                ? `<span style="background:rgba(231,76,60,0.15);color:var(--danger);padding:0.2rem 0.6rem;border-radius:4px;font-size:0.78rem;font-weight:700;">DEVOLVIDO</span>`
+                : `<span style="background:rgba(52,152,219,0.15);color:var(--info);padding:0.2rem 0.6rem;border-radius:4px;font-size:0.78rem;font-weight:700;">NOVO</span>`;
+
             body.innerHTML += `
                 <tr>
                     <td>${alert.id}</td>
-                    <td>${alert.type}</td>
-                    <td class="severity-${alert.severity.toLowerCase()}">${alert.severity}</td>
-                    <td>${alert.status}</td>
+                    <td>${alert.type ?? '—'}</td>
+                    <td class="severity-${(alert.severity ?? '').toLowerCase()}">${alert.severity ?? '—'}</td>
+                    <td>${badgeStatus}${motivoHtml}</td>
                     <td>
-                        <button onclick="resolverAlerta(${alert.id})" class="btn-acao">✅</button>
-                        <button onclick="marcarInconsistente(${alert.id})" class="btn-acao">⚠️</button>
+                        <button onclick="supervisorAceitarAlerta(${alert.id})" class="btn-acao">✅ Aceitar</button>
                     </td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro ao carregar alarmes:", err);
+        console.error("Erro ao carregar alarmes (supervisor):", err);
     }
 }
 
-async function resolverAlerta(id) {
-    const user = JSON.parse(localStorage.getItem('utilizadorAtivo'));
-    await fetch(`/api/alerts/${id}/resolve?username=${user.nome}`, { method: 'POST' });
-    carregarDadosAlarmes();
+async function supervisorAceitarAlerta(id) {
+    const username = getUsernameAtivo();
+    try {
+        await fetch(`/api/alerts/${id}/accept?username=${encodeURIComponent(username)}`, { method: 'POST' });
+        await carregarAlarmes();
+    } catch (err) {
+        console.error("Erro ao aceitar alerta:", err);
+    }
 }
 
-async function marcarInconsistente(id) {
-    const user = JSON.parse(localStorage.getItem('utilizadorAtivo'));
-    await fetch(`/api/alerts/${id}/inconsistent?username=${user.nome}`, { method: 'POST' });
-    carregarDadosAlarmes();
+// ── ADMIN ────────────────────────────────────────────
+
+async function carregarAlarmesParaAdmin() {
+    try {
+        const resAccepted = await fetch('/api/alerts/accepted');
+        const alerts = await resAccepted.json();
+
+        // CORRIGIDO: contadores calculados a partir dos alertas ACCEPTED, não do /stats global
+        document.getElementById('count-high').innerText   = alerts.filter(a => a.severity === 'HIGH').length;
+        document.getElementById('count-medium').innerText = alerts.filter(a => a.severity === 'MEDIUM').length;
+        document.getElementById('count-low').innerText    = alerts.filter(a => a.severity === 'LOW').length;
+
+        const body = document.getElementById('alerts-body');
+        body.innerHTML = '';
+
+        if (alerts.length === 0) {
+            body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">Sem alertas aceites pelo supervisor.</td></tr>`;
+            return;
+        }
+
+        alerts.forEach(alert => {
+            body.innerHTML += `
+                <tr>
+                    <td>${alert.id}</td>
+                    <td>${alert.type ?? '—'}</td>
+                    <td class="severity-${(alert.severity ?? '').toLowerCase()}">${alert.severity ?? '—'}</td>
+                    <td>${alert.status}</td>
+                    <td>
+                        <button onclick="adminResolverAlerta(${alert.id})" class="btn-acao" title="Concluído">✅</button>
+                        <button onclick="abrirModalInconsistente(${alert.id})" class="btn-acao" title="Inconsistente">⚠️</button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error("Erro ao carregar alarmes (admin):", err);
+    }
+}
+
+async function adminResolverAlerta(id) {
+    const username = getUsernameAtivo();
+    try {
+        await fetch(`/api/alerts/${id}/resolve?username=${encodeURIComponent(username)}`, { method: 'POST' });
+        await carregarAlarmes();
+    } catch (err) {
+        console.error("Erro ao resolver alerta:", err);
+    }
+}
+
+// ── MODAL INCONSISTENTE ──────────────────────────────
+
+function abrirModalInconsistente(alertId) {
+    const anterior = document.getElementById('modal-inconsistente');
+    if (anterior) anterior.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-inconsistente';
+    modal.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(7,14,22,0.85);
+        display: flex; align-items: center; justify-content: center;
+    `;
+
+    modal.innerHTML = `
+        <div style="
+            background: var(--navy-light);
+            border: 1px solid rgba(245,166,35,0.2);
+            border-radius: 12px;
+            padding: 2rem 2.5rem;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            animation: fadeUp 0.2s ease both;
+        ">
+            <h3 style="font-family:var(--font-display); color:var(--amber); font-size:1.2rem; margin-bottom:0.5rem;">
+                Marcar como Inconsistente
+            </h3>
+            <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1.2rem;">
+                Escreve o motivo. O supervisor irá receber este alerta de volta com a tua justificação.
+            </p>
+            <textarea
+                id="motivo-inconsistente"
+                placeholder="Descreve o motivo de inconsistência..."
+                style="
+                    width:100%; min-height:110px; resize:vertical;
+                    background:var(--navy); border:1px solid rgba(255,255,255,0.1);
+                    border-radius:8px; color:var(--white);
+                    font-family:var(--font-body); font-size:0.93rem;
+                    padding:0.75rem 1rem; outline:none;
+                    transition: border-color 0.2s;
+                "
+                onfocus="this.style.borderColor='var(--amber)'"
+                onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+            ></textarea>
+            <div style="display:flex; gap:0.75rem; margin-top:1.2rem; justify-content:flex-end;">
+                <button
+                    onclick="fecharModalInconsistente()"
+                    style="
+                        background:transparent; border:1px solid rgba(255,255,255,0.15);
+                        color:var(--muted); border-radius:7px;
+                        font-family:var(--font-display); font-size:0.82rem;
+                        font-weight:600; letter-spacing:0.05em; text-transform:uppercase;
+                        padding:0.6rem 1.2rem; cursor:pointer;
+                    "
+                >Cancelar</button>
+                <button
+                    onclick="adminMarcarInconsistente(${alertId})"
+                    style="
+                        background:var(--danger); border:none; color:white;
+                        border-radius:7px; font-family:var(--font-display);
+                        font-size:0.82rem; font-weight:700; letter-spacing:0.05em;
+                        text-transform:uppercase; padding:0.6rem 1.4rem; cursor:pointer;
+                    "
+                >Enviar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.getElementById('motivo-inconsistente').focus();
+}
+
+function fecharModalInconsistente() {
+    const modal = document.getElementById('modal-inconsistente');
+    if (modal) modal.remove();
+}
+
+async function adminMarcarInconsistente(id) {
+    const motivo = document.getElementById('motivo-inconsistente').value.trim();
+    if (!motivo) {
+        document.getElementById('motivo-inconsistente').style.borderColor = 'var(--danger)';
+        return;
+    }
+
+    const username = getUsernameAtivo();
+    try {
+        await fetch(
+            `/api/alerts/${id}/inconsistent?username=${encodeURIComponent(username)}&reason=${encodeURIComponent(motivo)}`,
+            { method: 'POST' }
+        );
+        fecharModalInconsistente();
+        await carregarAlarmes();
+    } catch (err) {
+        console.error("Erro ao marcar inconsistente:", err);
+    }
 }

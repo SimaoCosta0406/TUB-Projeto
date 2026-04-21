@@ -22,6 +22,13 @@ public class Alert {
     @Column(columnDefinition = "TEXT")
     private String metadata;
 
+    // Novo: username do supervisor que aceitou
+    private String acceptedBy;
+
+    // Novo: motivo de inconsistência escrito pelo admin
+    @Column(columnDefinition = "TEXT")
+    private String inconsistentReason;
+
     public Alert() {
     }
 
@@ -45,75 +52,36 @@ public class Alert {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public String getType() {
-        return type;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getSeverity() { return severity; }
+    public void setSeverity(String severity) { this.severity = severity; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public String getSource() {
-        return source;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setSource(String source) {
-        this.source = source;
-    }
+    public LocalDateTime getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
 
-    public String getSeverity() {
-        return severity;
-    }
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
 
-    public void setSeverity(String severity) {
-        this.severity = severity;
-    }
+    public String getAcceptedBy() { return acceptedBy; }
+    public void setAcceptedBy(String acceptedBy) { this.acceptedBy = acceptedBy; }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getResolvedAt() {
-        return resolvedAt;
-    }
-
-    public void setResolvedAt(LocalDateTime resolvedAt) {
-        this.resolvedAt = resolvedAt;
-    }
-
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
-    }
+    public String getInconsistentReason() { return inconsistentReason; }
+    public void setInconsistentReason(String inconsistentReason) { this.inconsistentReason = inconsistentReason; }
 }

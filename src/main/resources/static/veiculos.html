@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Veículos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
+                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Secção Admin: Gerir Veículos (só visível para ADMIN) -->
+    <section id="adminVehiclesSection" style="display: none; padding: 6rem 0 2rem;">
+        <div class="container card-box">
+            <h2>Gerir Veículos</h2>
+            <input type="hidden" id="vehicleId">
+            <div class="admin-form">
+                <h3>Dados do Veículo</h3>
+                <input type="text" id="vehiclePlate" placeholder="Matrícula" />
+                <input type="text" id="vehicleModel" placeholder="Modelo" />
+                <input type="number" id="vehicleCapacity" placeholder="Capacidade" />
+                <select id="vehicleStatus">
+                    <option value="IN_SERVICE">Em Serviço</option>
+                    <option value="OUT_OF_SERVICE">Fora de Serviço</option>
+                    <option value="MAINTENANCE">Em Manutenção</option>
+                </select>
+                <div style="margin-top: 1rem;">
+                    <button onclick="adicionarOuEditarVeiculo()">Guardar</button>
+                    <button onclick="limparFormularioVeiculo()" style="background: var(--navy-light); color: var(--muted); border: 1px solid rgba(255,255,255,0.1);">Limpar</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lista de Veículos -->
+    <section class="vehicles-section">
+        <div class="card-full">
+            <h2>Gestão de Veículos</h2>
+
+            <div class="stats-container">
+                <div class="stat-card high">Total <span id="count-total">0</span></div>
+                <div class="stat-card medium">Em Serviço <span id="count-service">0</span></div>
+                <div class="stat-card low">Fora de Serviço <span id="count-out">0</span></div>
+            </div>
+
+            <table id="table-vehicles">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Matrícula</th>
+                        <th>Modelo</th>
+                        <th>Capacidade</th>
+                        <th>Estado</th>
+                        <th>Rota</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="vehicles-body">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--muted); padding: 2rem;">
+                            A carregar veículos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            verificarAcessos();
+            carregarVeiculos();
+
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (utilizadorGuardado) {
+                const utilizador = JSON.parse(utilizadorGuardado);
+                if (utilizador.role === 'ADMIN') {
+                    const adminSection = document.getElementById('adminVehiclesSection');
+                    if (adminSection) adminSection.style.display = 'block';
+                }
+            }
+        });
+
+        async function carregarVeiculos() {
+            try {
+                const resposta = await fetch('/api/vehicles');
+                const vehicles = await resposta.json();
+
+                const tbody = document.getElementById('vehicles-body');
+                tbody.innerHTML = '';
+
+                let countTotal = 0;
+                let countService = 0;
+                let countOut = 0;
+
+                vehicles.forEach(vehicle => {
+                    countTotal++;
+                    if (vehicle.status === 'IN_SERVICE') countService++;
+                    else if (vehicle.status === 'OUT_OF_SERVICE') countOut++;
+
+                    const row = document.createElement('tr');
+
+                    const statusClass = vehicle.status === 'IN_SERVICE' ? 'status-active' :
+                                      vehicle.status === 'OUT_OF_SERVICE' ? 'status-inactive' : 'status-maintenance';
+
+                    row.innerHTML = `
+                        <td>${vehicle.id}</td>
+                        <td>${vehicle.plate}</td>
+                        <td>${vehicle.model || '-'}</td>
+                        <td>${vehicle.capacity || '-'}</td>
+                        <td>
+                            <select onchange="mudarStatusVeiculo(${vehicle.id}, this.value)" style="padding: 0.4rem; border-radius: 4px; background: var(--navy); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                                <option value="IN_SERVICE" ${vehicle.status === 'IN_SERVICE' ? 'selected' : ''}>Em Serviço</option>
+                                <option value="OUT_OF_SERVICE" ${vehicle.status === 'OUT_OF_SERVICE' ? 'selected' : ''}>Fora de Serviço</option>
+                                <option value="MAINTENANCE" ${vehicle.status === 'MAINTENANCE' ? 'selected' : ''}>Em Manutenção</option>
+                            </select>
+                        </td>
+                        <td>${vehicle.route ? vehicle.route.code : '-'}</td>
+                        <td>
+                            <button onclick="editarVeiculo(${vehicle.id}, '${vehicle.plate}', '${vehicle.model || ''}', ${vehicle.capacity || 0}, '${vehicle.status}')">Editar</button>
+                            <button onclick="apagarVeiculo(${vehicle.id})" style="background: #e74c3c;">Apagar</button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('count-total').textContent = countTotal;
+                document.getElementById('count-service').textContent = countService;
+                document.getElementById('count-out').textContent = countOut;
+
+            } catch (erro) {
+                console.error('Erro ao carregar veículos:', erro);
+                document.getElementById('vehicles-body').innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #e74c3c; padding: 2rem;">
+                            Erro ao carregar veículos. Tente novamente.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'IN_SERVICE': return 'Em Serviço';
+                case 'OUT_OF_SERVICE': return 'Fora de Serviço';
+                case 'MAINTENANCE': return 'Em Manutenção';
+                default: return status;
+            }
+        }
+
+        function editarVeiculo(id, plate, model, capacity, status) {
+            document.getElementById('vehicleId').value = id;
+            document.getElementById('vehiclePlate').value = plate;
+            document.getElementById('vehicleModel').value = model;
+            document.getElementById('vehicleCapacity').value = capacity;
+            document.getElementById('vehicleStatus').value = status;
+
+            document.getElementById('adminVehiclesSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limparFormularioVeiculo() {
+            document.getElementById('vehicleId').value = '';
+            document.getElementById('vehiclePlate').value = '';
+            document.getElementById('vehicleModel').value = '';
+            document.getElementById('vehicleCapacity').value = '';
+            document.getElementById('vehicleStatus').value = 'IN_SERVICE';
+        }
+
+        async function adicionarOuEditarVeiculo() {
+            const id = document.getElementById('vehicleId').value;
+            const plate = document.getElementById('vehiclePlate').value.trim();
+            const model = document.getElementById('vehicleModel').value.trim();
+            const capacity = parseInt(document.getElementById('vehicleCapacity').value);
+            const status = document.getElementById('vehicleStatus').value;
+
+            if (!plate) {
+                alert('Por favor, insira a matrícula do veículo.');
+                return;
+            }
+
+            const vehicle = {
+                plate: plate,
+                model: model || null,
+                capacity: capacity || null,
+                status: status
+            };
+
+            try {
+                let resposta;
+                if (id) {
+                    // Editar veículo existente
+                    resposta = await fetch(`/api/vehicles/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(vehicle)
+                    });
+                } else {
+                    // Criar novo veículo
+                    resposta = await fetch('/api/vehicles', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(vehicle)
+                    });
+                }
+
+                if (resposta.ok) {
+                    alert(id ? 'Veículo atualizado com sucesso!' : 'Veículo criado com sucesso!');
+                    limparFormularioVeiculo();
+                    carregarVeiculos();
+                } else {
+                    const erro = await resposta.text();
+                    alert('Erro: ' + erro);
+                }
+            } catch (erro) {
+                console.error('Erro ao salvar veículo:', erro);
+                alert('Erro ao salvar veículo. Tente novamente.');
+            }
+        }
+
+        async function mudarStatusVeiculo(id, novoStatus) {
+            try {
+                const resposta = await fetch(`/api/vehicles/${id}/status?status=${novoStatus}`, {
+                    method: 'POST'
+                });
+
+                if (resposta.ok) {
+                    carregarVeiculos();
+                } else {
+                    alert('Erro ao mudar status do veículo.');
+                    carregarVeiculos();
+                }
+            } catch (erro) {
+                console.error('Erro ao mudar status:', erro);
+                alert('Erro ao mudar status. Tente novamente.');
+                carregarVeiculos();
+            }
+        }
+
+        async function apagarVeiculo(id) {
+            if (!confirm('Tem certeza que deseja apagar este veículo?')) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/api/vehicles/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (resposta.ok) {
+                    alert('Veículo apagado com sucesso!');
+                    carregarVeiculos();
+                } else {
+                    alert('Erro ao apagar veículo.');
+                }
+            } catch (erro) {
+                console.error('Erro ao apagar veículo:', erro);
+                alert('Erro ao apagar veículo. Tente novamente.');
+            }
+        }
+    </script>
+</body>
+</html>

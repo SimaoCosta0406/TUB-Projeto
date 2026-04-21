@@ -487,17 +487,83 @@ img { max-width: 100%; display: block; }
     transform: scale(1.1);
 }
 
-/* ── FOOTER ─────────────────────────────────────────── */
-footer {
-    background: #070e16;
-    border-top: 1px solid rgba(245,166,35,0.08);
-    text-align: center;
-    padding: 2rem;
-    font-size: 0.8rem;
-    color: rgba(143,168,191,0.5);
-    font-family: var(--font-display);
-    letter-spacing: 0.05em;
+/* ── STATUS BADGES ────────────────────────────────── */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+}
+
+.status-active {
+    background: rgba(46,204,113,0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46,204,113,0.3);
+}
+
+.status-inactive {
+    background: rgba(231,76,60,0.15);
+    color: #e74c3c;
+    border: 1px solid rgba(231,76,60,0.3);
+}
+
+.status-maintenance {
+    background: rgba(243,156,18,0.15);
+    color: #f39c12;
+    border: 1px solid rgba(243,156,18,0.3);
+}
+
+/* ── ADMIN FORM ────────────────────────────────────── */
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 600px;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+    padding: 12px;
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 8px;
+    background: rgba(245,166,35,0.05);
+    color: var(--white);
+    font-family: var(--font-body);
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 2px rgba(245,166,35,0.2);
+}
+
+.admin-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.admin-form button {
+    padding: 12px 24px;
+    background: var(--amber);
+    color: var(--navy);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    align-self: flex-start;
+}
+
+.admin-form button:hover {
+    background: var(--amber-dark);
+    transform: translateY(-2px);
+}
 }
 
 /* ── MAP SECTION ────────────────────────────────────── */

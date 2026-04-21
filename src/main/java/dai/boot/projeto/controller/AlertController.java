@@ -19,16 +19,28 @@ public class AlertController {
     @Autowired
     private AlertRepository alertRepository;
 
-    // Listar todos ou filtrar por status (Ex: /api/alerts?status=ACTIVE)
-    @GetMapping
-    public List<Alert> getAll() {
-        return alertService.getActiveAlerts();
-    }
-
-    // Listar apenas ativos (Rota específica pedida pelo PM)
+    // Alertas ACTIVE — Supervisor vê para aceitar
     @GetMapping("/active")
     public List<Alert> getActive() {
         return alertService.getActiveAlerts();
+    }
+
+    // Alertas ACCEPTED — Admin vê para resolver ou marcar inconsistente
+    @GetMapping("/accepted")
+    public List<Alert> getAccepted() {
+        return alertService.getAcceptedAlerts();
+    }
+
+    // Alertas PENDING (devolvidos pelo admin) — Supervisor vê motivo e volta a aceitar
+    @GetMapping("/pending")
+    public List<Alert> getPending() {
+        return alertService.getPendingAlerts();
+    }
+
+    // Rota geral — devolve todos (usado para histórico e stats)
+    @GetMapping
+    public List<Alert> getAll() {
+        return alertRepository.findAll();
     }
 
     // Criar alerta
@@ -37,26 +49,36 @@ public class AlertController {
         return alertService.createAlert(alert);
     }
 
-    // Resolver alerta
+    // Supervisor aceita um alerta
+    @PostMapping("/{id}/accept")
+    public Alert accept(@PathVariable Long id, @RequestParam String username) {
+        return alertService.acceptAlert(id, username);
+    }
+
+    // Admin resolve um alerta
     @PostMapping("/{id}/resolve")
     public Alert resolve(@PathVariable Long id, @RequestParam String username) {
         return alertService.resolveAlert(id, username);
     }
 
+    // Admin marca como inconsistente com motivo
     @PostMapping("/{id}/inconsistent")
-    public Alert setInconsistent(@PathVariable Long id, @RequestParam String username) {
-        // Precisas de adicionar este método à interface AlertService primeiro
-        return alertService.markAsInconsistent(id, username);
+    public Alert setInconsistent(
+            @PathVariable Long id,
+            @RequestParam String username,
+            @RequestParam(required = false, defaultValue = "") String reason) {
+        return alertService.markAsInconsistent(id, username, reason);
     }
 
+    // Estatísticas por severidade (apenas não resolvidos)
     @GetMapping("/stats")
     public Map<String, Long> getStats() {
         return alertService.getSeverityStats();
     }
 
+    // Histórico completo
     @GetMapping("/history")
     public List<Alert> getHistory() {
-        // Chama o findAll() do repositório para trazer a tabela inteira
-        return alertRepository.findAll(); 
+        return alertRepository.findAll();
     }
 }

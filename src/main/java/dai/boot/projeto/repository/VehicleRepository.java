@@ -1,13 +1,14 @@
-package main.java.dai.boot.projeto.repository;
+package dai.boot.projeto.repository;
 
 import dai.boot.projeto.entities.Vehicle;
-
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-@Repository
 
+// CORRIGIDO: faltava import de List
+import java.util.List;
+import java.util.Optional;
+
+@Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Optional<Vehicle> findByPlate(String plate);
     List<Vehicle> findByStatus(String status);

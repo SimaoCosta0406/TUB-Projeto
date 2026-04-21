@@ -4,11 +4,12 @@ import dai.boot.projeto.entities.Alert;
 import dai.boot.projeto.repository.AlertRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AlertServiceImpl implements AlertService {
@@ -18,20 +19,34 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public Alert createAlert(Alert alert) {
-        List<Alert> existingActive = alertRepository.findByTypeAndStatus(alert.getType(), "ACTIVE");
-
-        for (Alert existing : existingActive) {
-            if (existing.getSource() != null && existing.getSource().equals(alert.getSource())) {
-                return existing;
-            }
+        if (alert.getStatus() == null) {
+            alert.setStatus("ACTIVE");
         }
-
         return alertRepository.save(alert);
     }
 
+    // Alertas novos — visíveis para o Supervisor aceitar
     @Override
     public List<Alert> getActiveAlerts() {
-        return alertRepository.findByStatus("ACTIVE");
+        return alertRepository.findAll().stream()
+                .filter(a -> "ACTIVE".equals(a.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    // Alertas aceites pelo Supervisor — visíveis para o Admin
+    @Override
+    public List<Alert> getAcceptedAlerts() {
+        return alertRepository.findAll().stream()
+                .filter(a -> "ACCEPTED".equals(a.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    // Alertas devolvidos pelo Admin como inconsistentes — Supervisor vê motivo
+    @Override
+    public List<Alert> getPendingAlerts() {
+        return alertRepository.findAll().stream()
+                .filter(a -> "PENDING".equals(a.getStatus()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -39,56 +54,54 @@ public class AlertServiceImpl implements AlertService {
         return alertRepository.findById(id);
     }
 
+    // Supervisor aceita um alerta: ACTIVE ou PENDING → ACCEPTED
     @Override
-    public Alert resolveAlert(Long id, String resolverUsername) {
-        Optional<Alert> optionalAlert = alertRepository.findById(id);
+    public Alert acceptAlert(Long id, String supervisorUsername) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Alerta não encontrado: " + id));
 
-        if (optionalAlert.isPresent()) {
-            Alert alert = optionalAlert.get();
-            
-            // LOG DE TESTE: Adiciona esta linha para veres no terminal se o código chega aqui
-            System.out.println("A resolver alerta " + id + " por " + resolverUsername);
-
-            alert.setStatus("RESOLVED");
-            alert.setResolvedAt(LocalDateTime.now());
-            
-            // Se não fizeres o save(), a alteração fica só na memória e não vai para a BD
-            return alertRepository.save(alert); 
-        }
-        return null;
+        alert.setStatus("ACCEPTED");
+        alert.setAcceptedBy(supervisorUsername);
+        alert.setInconsistentReason(null); // limpa motivo anterior se existia
+        return alertRepository.save(alert);
     }
 
+    // Admin resolve: ACCEPTED → RESOLVED
     @Override
-    public Alert markAsInconsistent(Long id, String reason) {
-        Optional<Alert> optionalAlert = alertRepository.findById(id);
-        if (optionalAlert.isPresent()) {
-            Alert alert = optionalAlert.get();
-            alert.setStatus("INCONSISTENT");        alert.setMetadata(alert.getMetadata() + " | Inconsistency Reason: " + reason);
-            return alertRepository.save(alert);
-        }
-        return null;
+    public Alert resolveAlert(Long id, String adminUsername) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Alerta não encontrado: " + id));
+
+        alert.setStatus("RESOLVED");
+        alert.setResolvedAt(LocalDateTime.now());
+        return alertRepository.save(alert);
+    }
+
+    // Admin marca como inconsistente com motivo: ACCEPTED → PENDING
+    @Override
+    public Alert markAsInconsistent(Long id, String adminUsername, String reason) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Alerta não encontrado: " + id));
+
+        alert.setStatus("PENDING");
+        alert.setInconsistentReason(reason);
+        alert.setAcceptedBy(null); // volta a requerer aceitação do supervisor
+        return alertRepository.save(alert);
+    }
+
+    // Compatibilidade com interface antiga (sem motivo)
+    @Override
+    public Alert markAsInconsistent(Long id, String username) {
+        return markAsInconsistent(id, username, "Sem motivo especificado.");
     }
 
     @Override
     public Map<String, Long> getSeverityStats() {
-        Map<String, Long> stats = new HashMap<>();
-        // Filtramos apenas pelos "ACTIVE" para o supervisor saber o que tem pendente
-        stats.put("HIGH", alertRepository.countBySeverityAndStatus("HIGH", "ACTIVE"));
-        stats.put("MEDIUM", alertRepository.countBySeverityAndStatus("MEDIUM", "ACTIVE"));
-        stats.put("LOW", alertRepository.countBySeverityAndStatus("LOW", "ACTIVE"));
-        return stats;
-    }
-
-    private Alert updateStatus(Long id, String newStatus, String username) {
-        Optional<Alert> opt = alertRepository.findById(id);
-        if (opt.isPresent()) {
-            Alert a = opt.get();
-            a.setStatus(newStatus);
-            a.setResolvedAt(LocalDateTime.now());
-            a.setMetadata(a.getMetadata() + " | Action by: " + username);
-            return alertRepository.save(a);
-        }
-        return null;
-
+        return alertRepository.findAll().stream()
+                .filter(a -> !"RESOLVED".equals(a.getStatus()))
+                .collect(Collectors.groupingBy(
+                        a -> a.getSeverity() != null ? a.getSeverity() : "UNKNOWN",
+                        Collectors.counting()
+                ));
     }
 }

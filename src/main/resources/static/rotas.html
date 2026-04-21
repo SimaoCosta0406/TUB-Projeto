@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Rotas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+
+                <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
+                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Secção Admin: Gerir Rotas (só visível para ADMIN) -->
+    <section id="adminRoutesSection" style="display: none; padding: 6rem 0 2rem;">
+        <div class="container card-box">
+            <h2>Gerir Rotas</h2>
+            <input type="hidden" id="routeId">
+            <div class="admin-form">
+                <h3>Dados da Rota</h3>
+                <input type="text" id="routeCode" placeholder="Código da rota" />
+                <input type="text" id="routeOrigin" placeholder="Origem" />
+                <input type="text" id="routeDestination" placeholder="Destino" />
+                <textarea id="routeStops" placeholder="Paragens (uma por linha)" rows="4"></textarea>
+                <select id="routeStatus">
+                    <option value="ACTIVE">Ativa</option>
+                    <option value="INACTIVE">Inativa</option>
+                    <option value="MAINTENANCE">Em Manutenção</option>
+                </select>
+                <div style="margin-top: 1rem;">
+                    <button onclick="adicionarOuEditarRota()">Guardar</button>
+                    <button onclick="limparFormularioRota()" style="background: var(--navy-light); color: var(--muted); border: 1px solid rgba(255,255,255,0.1);">Limpar</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lista de Rotas -->
+    <section class="routes-section">
+        <div class="card-full">
+            <h2>Gestão de Rotas</h2>
+
+            <div class="stats-container">
+                <div class="stat-card high">Total <span id="count-total-routes">0</span></div>
+                <div class="stat-card medium">Ativas <span id="count-active">0</span></div>
+                <div class="stat-card low">Inativas <span id="count-inactive">0</span></div>
+            </div>
+
+            <table id="table-routes">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Paragens</th>
+                        <th>Estado</th>
+                        <th>Veículos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="routes-body">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--muted); padding: 2rem;">
+                            A carregar rotas...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            verificarAcessos();
+            carregarRotas();
+
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (utilizadorGuardado) {
+                const utilizador = JSON.parse(utilizadorGuardado);
+                if (utilizador.role === 'ADMIN') {
+                    const adminSection = document.getElementById('adminRoutesSection');
+                    if (adminSection) adminSection.style.display = 'block';
+                }
+            }
+        });
+
+        async function carregarRotas() {
+            try {
+                const resposta = await fetch('/api/routes');
+                const routes = await resposta.json();
+
+                const tbody = document.getElementById('routes-body');
+                tbody.innerHTML = '';
+
+                let countTotal = 0;
+                let countActive = 0;
+                let countInactive = 0;
+
+                for (const route of routes) {
+                    countTotal++;
+                    if (route.status === 'ACTIVE') countActive++;
+                    else if (route.status === 'INACTIVE') countInactive++;
+
+                    // Buscar veículos associados a esta rota
+                    let vehiclesCount = 0;
+                    try {
+                        const vehiclesResponse = await fetch(`/api/routes/${route.id}/vehicles`);
+                        if (vehiclesResponse.ok) {
+                            const vehicles = await vehiclesResponse.json();
+                            vehiclesCount = vehicles.length;
+                        }
+                    } catch (erro) {
+                        console.error('Erro ao carregar veículos da rota:', erro);
+                    }
+
+                    const row = document.createElement('tr');
+
+                    const statusClass = route.status === 'ACTIVE' ? 'status-active' :
+                                      route.status === 'INACTIVE' ? 'status-inactive' : 'status-maintenance';
+
+                    const stopsText = route.stops && route.stops.length > 0 ?
+                        route.stops.slice(0, 3).join(', ') + (route.stops.length > 3 ? '...' : '') : '-';
+
+                    row.innerHTML = `
+                        <td>${route.id}</td>
+                        <td>${route.code}</td>
+                        <td>${route.origin || '-'}</td>
+                        <td>${route.destination || '-'}</td>
+                        <td title="${route.stops ? route.stops.join(', ') : ''}">${stopsText}</td>
+                        <td>
+                            <select onchange="mudarStatusRota(${route.id}, this.value)" style="padding: 0.4rem; border-radius: 4px; background: var(--navy); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                                <option value="ACTIVE" ${route.status === 'ACTIVE' ? 'selected' : ''}>Ativa</option>
+                                <option value="INACTIVE" ${route.status === 'INACTIVE' ? 'selected' : ''}>Inativa</option>
+                                <option value="MAINTENANCE" ${route.status === 'MAINTENANCE' ? 'selected' : ''}>Em Manutenção</option>
+                            </select>
+                        </td>
+                        <td>${vehiclesCount}</td>
+                        <td>
+                            <button onclick="editarRota(${route.id}, '${route.code}', '${route.origin || ''}', '${route.destination || ''}', ${JSON.stringify(route.stops).replace(/"/g, '&quot;')}, '${route.status}')">Editar</button>
+                            <button onclick="verVeiculosRota(${route.id}, '${route.code}')" style="background: #3498db;">Ver Veículos</button>
+                            <button onclick="apagarRota(${route.id})" style="background: #e74c3c;">Apagar</button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                }
+
+                document.getElementById('count-total-routes').textContent = countTotal;
+                document.getElementById('count-active').textContent = countActive;
+                document.getElementById('count-inactive').textContent = countInactive;
+
+            } catch (erro) {
+                console.error('Erro ao carregar rotas:', erro);
+                document.getElementById('routes-body').innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #e74c3c; padding: 2rem;">
+                            Erro ao carregar rotas. Tente novamente.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'ACTIVE': return 'Ativa';
+                case 'INACTIVE': return 'Inativa';
+                case 'MAINTENANCE': return 'Em Manutenção';
+                default: return status;
+            }
+        }
+
+        function editarRota(id, code, origin, destination, stops, status) {
+            document.getElementById('routeId').value = id;
+            document.getElementById('routeCode').value = code;
+            document.getElementById('routeOrigin').value = origin;
+            document.getElementById('routeDestination').value = destination;
+            document.getElementById('routeStops').value = stops ? stops.join('\n') : '';
+            document.getElementById('routeStatus').value = status;
+
+            document.getElementById('adminRoutesSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limparFormularioRota() {
+            document.getElementById('routeId').value = '';
+            document.getElementById('routeCode').value = '';
+            document.getElementById('routeOrigin').value = '';
+            document.getElementById('routeDestination').value = '';
+            document.getElementById('routeStops').value = '';
+            document.getElementById('routeStatus').value = 'ACTIVE';
+        }
+
+        async function adicionarOuEditarRota() {
+            const id = document.getElementById('routeId').value;
+            const code = document.getElementById('routeCode').value.trim();
+            const origin = document.getElementById('routeOrigin').value.trim();
+            const destination = document.getElementById('routeDestination').value.trim();
+            const stopsText = document.getElementById('routeStops').value.trim();
+            const status = document.getElementById('routeStatus').value;
+
+            if (!code) {
+                alert('Por favor, insira o código da rota.');
+                return;
+            }
+
+            const stops = stopsText ? stopsText.split('\n').map(stop => stop.trim()).filter(stop => stop) : [];
+
+            const route = {
+                code: code,
+                origin: origin || null,
+                destination: destination || null,
+                stops: stops,
+                status: status
+            };
+
+            try {
+                let resposta;
+                if (id) {
+                    // Editar rota existente
+                    resposta = await fetch(`/api/routes/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(route)
+                    });
+                } else {
+                    // Criar nova rota
+                    resposta = await fetch('/api/routes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(route)
+                    });
+                }
+
+                if (resposta.ok) {
+                    alert(id ? 'Rota atualizada com sucesso!' : 'Rota criada com sucesso!');
+                    limparFormularioRota();
+                    carregarRotas();
+                } else {
+                    const erro = await resposta.text();
+                    alert('Erro: ' + erro);
+                }
+            } catch (erro) {
+                console.error('Erro ao salvar rota:', erro);
+                alert('Erro ao salvar rota. Tente novamente.');
+            }
+        }
+
+        async function verVeiculosRota(routeId, routeCode) {
+            try {
+                const resposta = await fetch(`/api/routes/${routeId}/vehicles`);
+                const vehicles = await resposta.json();
+
+                let mensagem = `Veículos na rota ${routeCode}:\n\n`;
+                if (vehicles.length === 0) {
+                    mensagem += 'Nenhum veículo atribuído a esta rota.';
+                } else {
+                    vehicles.forEach(vehicle => {
+                        mensagem += `- ${vehicle.plate} (${vehicle.model || 'Sem modelo'})\n`;
+                    });
+                }
+
+                alert(mensagem);
+            } catch (erro) {
+                console.error('Erro ao carregar veículos da rota:', erro);
+                alert('Erro ao carregar veículos da rota.');
+            }
+        }
+
+        async function mudarStatusRota(id, novoStatus) {
+            try {
+                const resposta = await fetch(`/api/routes/${id}/status?status=${novoStatus}`, {
+                    method: 'POST'
+                });
+
+                if (resposta.ok) {
+                    carregarRotas();
+                } else {
+                    alert('Erro ao mudar status da rota.');
+                    carregarRotas();
+                }
+            } catch (erro) {
+                console.error('Erro ao mudar status:', erro);
+                alert('Erro ao mudar status. Tente novamente.');
+                carregarRotas();
+            }
+        }
+
+        async function apagarRota(id) {
+            if (!confirm('Tem certeza que deseja apagar esta rota? Todos os veículos atribuídos a ela serão desassociados.')) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/api/routes/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (resposta.ok) {
+                    alert('Rota apagada com sucesso!');
+                    carregarRotas();
+                } else {
+                    alert('Erro ao apagar rota.');
+                }
+            } catch (erro) {
+                console.error('Erro ao apagar rota:', erro);
+                alert('Erro ao apagar rota. Tente novamente.');
+            }
+        }
+    </script>
+</body>
+</html>

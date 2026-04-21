@@ -12,10 +12,10 @@
             <img src="transferir.png" class="logo" alt="Logo TUB">
             <ul class="nav-links">
                 <li><a href="javascript:void(0)" onclick="mostrarSecao('home')">Home</a></li>
-                <li><a href="javascript:void(0)" onclick="mostrarSecao('about')">Sobre</a></li>
-                <li><a href="javascript:void(0)" onclick="mostrarSecao('contact')">Contacto</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
                 <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
+                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;"><a href="javascript:void(0)" onclick="fazerLogout()">Sair</a></li>
                 <li id="nav-alarmes" style="display: none;">
@@ -24,7 +24,7 @@
             </ul>
         </div>
     </nav>
-
+ 
     <section id="home" class="hero">
         <div class="container">
             <p>Percursos e Horários</p>
@@ -49,14 +49,14 @@
 
     <section id="alarmes" class="admin-only" style="display: none;">
         <div class="card-full">
-            <h2>Gestão de Alarmes e Eventos</h2>
-
+            <h2 id="alarmes-titulo">Gestão de Alarmes</h2>
+ 
             <div id="alarm-stats" class="stats-container">
                 <div class="stat-card high">Críticos <span id="count-high">0</span></div>
                 <div class="stat-card medium">Atenção <span id="count-medium">0</span></div>
                 <div class="stat-card low">Info <span id="count-low">0</span></div>
             </div>
-
+ 
             <table id="table-alerts">
                 <thead>
                     <tr>
@@ -71,11 +71,11 @@
             </table>
         </div>
     </section>
-
+ 
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>
-
+ 
     <script src="script.js"></script>
 </body>
 </html>
