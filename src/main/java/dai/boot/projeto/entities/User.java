@@ -18,6 +18,7 @@ public class User {
 
     private String email;
     private String role;
+    private boolean isOnline = false;
 
     public User() {}
 
@@ -31,4 +32,6 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public boolean isOnline() { return isOnline; }
+    public void setOnline(boolean online) { isOnline = online; }
 }

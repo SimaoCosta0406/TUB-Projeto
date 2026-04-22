@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/panels")
@@ -20,6 +21,9 @@ public class PanelController {
 
     @Autowired
     private RouteRepository routeRepository;
+
+    @Autowired
+    private dai.boot.projeto.repository.PanelMessageRepository panelMessageRepository;
 
     @GetMapping
     public List<InformationPanel> getAllPanels() {
@@ -93,5 +97,21 @@ public class PanelController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/{id}/simulate-failure")
+    public ResponseEntity<InformationPanel> simulateFailure(@PathVariable Long id) {
+        return panelRepository.findById(id).map(panel -> {
+            panel.setStatus("ERROR");
+            panel.setLastUpdated(LocalDateTime.now());
+            return ResponseEntity.ok(panelRepository.save(panel));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/messages")
+    public ResponseEntity<List<dai.boot.projeto.entities.PanelMessage>> getPanelMessages(@PathVariable Long id) {
+        return ResponseEntity.ok(panelMessageRepository.findAll().stream()
+                .filter(m -> m.getPanel() != null && m.getPanel().getId().equals(id))
+                .toList());
     }
 }

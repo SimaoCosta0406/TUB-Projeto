@@ -19,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Verificar se email já existe
     boolean existsByEmail(String email);
+    
+    //Verificar se está online
+    java.util.List<User> findByIsOnline(boolean isOnline);
 }

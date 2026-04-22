@@ -35,6 +35,12 @@ public class InformationPanel {
     @JoinColumn(name = "route_id")
     private Route route;
 
+    @Column(name = "predictions", columnDefinition = "TEXT")
+    private String predictions;
+
+    @Column(name = "last_updated")
+    private LocalDateTime lastUpdated;
+
     public InformationPanel() {}
 
     // Getters e Setters
@@ -67,4 +73,9 @@ public class InformationPanel {
 
     public Route getRoute() { return route; }
     public void setRoute(Route route) { this.route = route; }
+
+    public String getPredictions() { return predictions; }
+    public void setPredictions(String predictions) { this.predictions = predictions; }
+    public LocalDateTime getLastUpdated() { return lastUpdated; }
+    public void setLastUpdated(LocalDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
 }
