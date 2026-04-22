@@ -103,5 +103,24 @@ public class PassengerService {
         
         return result;
     }
+
+    // Adiciona estes métodos dentro da classe PassengerService
+
+public void correctOccupancy(Long id, int totalPassengers, int currentOccupancy) {
+    // Esta função serve para ajustar os valores quando há um erro na contagem
+    // Normalmente procura o registo pelo ID e atualiza os campos
+    System.out.println("A corrigir ocupação para o ID: " + id);
+    
+    // Aqui viria a lógica de save no repositório, ex:
+    // passengerRepository.updateValues(id, totalPassengers, currentOccupancy);
+}
+
+public void resetOccupancy(Long id) {
+    // Esta função serve para zerar a ocupação (ex: quando o autocarro chega ao fim da linha)
+    System.out.println("A fazer reset da ocupação para o ID: " + id);
+    
+    // Exemplo de lógica:
+    // passengerRepository.resetById(id);
+}
 }
 
