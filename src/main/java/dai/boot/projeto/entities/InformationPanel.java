@@ -31,6 +31,10 @@ public class InformationPanel {
     @JoinColumn(name = "stop_id")
     private Stop stop;
 
+    @ManyToOne
+    @JoinColumn(name = "route_id")
+    private Route route;
+
     public InformationPanel() {}
 
     // Getters e Setters
@@ -60,4 +64,7 @@ public class InformationPanel {
 
     public Stop getStop() { return stop; }
     public void setStop(Stop stop) { this.stop = stop; }
+
+    public Route getRoute() { return route; }
+    public void setRoute(Route route) { this.route = route; }
 }
