@@ -47,12 +47,13 @@
                         <th>Linha</th>
                         <th>Entradas</th>
                         <th>Saídas</th>
-                        <th>Ocupação</th>
+                        <th>Ocupação Total</th>
+                        <th>Percentagem</th>
                     </tr>
                 </thead>
                 <tbody id="tabela-ocupacao">
                     <tr>
-                        <td colspan="5" style="text-align: center; color: var(--muted); padding: 2rem;">
+                        <td colspan="6" style="text-align: center; color: var(--muted); padding: 2rem;">
                             A carregar dados...
                         </td>
                     </tr>
@@ -93,10 +94,11 @@
                     occupancyByPanel[panel.id] = {
                         panelId:        panel.id,
                         location:       panel.location,
-                        line:           null, // Será definido se houver contagens
+                        line:           null,
                         totalEntradas:  0,
                         totalSaidas:    0,
-                        totalOccupancy: 0
+                        totalOccupancy: 0,
+                        latestTimestamp: null
                     };
                 });
 
@@ -104,16 +106,19 @@
                 const countsResponse = await fetch('/api/passengers/all');
                 const counts = await countsResponse.json();
 
-                // Agrupar por painel e calcular ocupação total (usando apenas a contagem mais recente por painel)
+                // Usar apenas a contagem mais recente por painel
                 counts.forEach(count => {
                     if (occupancyByPanel[count.panelId]) {
-                        // Para ocupação atual, usar apenas a mais recente, mas aqui estamos somando tudo
-                        // Para correção, talvez mudar para usar apenas a última contagem
-                        occupancyByPanel[count.panelId].totalEntradas  += count.entryCount  || 0;
-                        occupancyByPanel[count.panelId].totalSaidas    += count.exitCount   || 0;
-                        occupancyByPanel[count.panelId].totalOccupancy += (count.entryCount || 0) - (count.exitCount || 0);
-                        if (!occupancyByPanel[count.panelId].line) {
-                            occupancyByPanel[count.panelId].line = count.line;
+                        const currentEntry = occupancyByPanel[count.panelId];
+                        const countTimestamp = new Date(count.timestamp);
+                        
+                        // Se é mais recente ou é a primeira entrada
+                        if (!currentEntry.latestTimestamp || countTimestamp > currentEntry.latestTimestamp) {
+                            currentEntry.totalEntradas = count.entryCount || 0;
+                            currentEntry.totalSaidas = count.exitCount || 0;
+                            currentEntry.totalOccupancy = (count.entryCount || 0) - (count.exitCount || 0);
+                            currentEntry.line = count.line;
+                            currentEntry.latestTimestamp = countTimestamp;
                         }
                     }
                 });
@@ -124,25 +129,51 @@
                 const paineis = Object.values(occupancyByPanel);
 
                 if (paineis.length === 0) {
-                    tabela.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">Sem dados disponíveis.</td></tr>';
+                    tabela.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">Sem dados disponíveis.</td></tr>';
                     return;
                 }
 
+                const CAPACIDADE = 55; // Capacidade de um autocarro
+                let temErros = false;
+
                 paineis.forEach(panel => {
                     const ocup = panel.totalOccupancy;
-                    const cor  = ocup > 40 ? 'var(--danger)' : ocup > 20 ? 'var(--warning)' : 'var(--success)';
+                    const percentagem = Math.round((ocup / CAPACIDADE) * 100);
+                    
+                    // Validar se percentagem é válida
+                    let cor = 'var(--success)';
+                    let percentagemDisplay = percentagem + '%';
+                    
+                    if (percentagem < 0 || percentagem > 100) {
+                        cor = 'var(--danger)';
+                        percentagemDisplay = percentagem + '% ⚠️ ERRO';
+                        temErros = true;
+                    } else if (percentagem > 80) {
+                        cor = 'var(--danger)';
+                    } else if (percentagem > 60) {
+                        cor = 'var(--warning)';
+                    }
+                    
                     tabela.innerHTML += `
                         <tr>
                             <td>${panel.location} (ID: ${panel.panelId})</td>
                             <td>${panel.line ?? '—'}</td>
                             <td>${panel.totalEntradas}</td>
                             <td>${panel.totalSaidas}</td>
-                            <td><strong style="color: ${cor}">${ocup}</strong></td>
+                            <td><strong style="color: ${cor}">${ocup}/${CAPACIDADE}</strong></td>
+                            <td><strong style="color: ${cor}">${percentagemDisplay}</strong></td>
                         </tr>
                     `;
                 });
 
-                document.getElementById('alerta-sensor').style.display = 'none';
+                // Mostrar alerta se houver erros de percentagem
+                const alertaSensor = document.getElementById('alerta-sensor');
+                if (temErros) {
+                    alertaSensor.textContent = '⚠️ ERRO: Ocupação inválida detectada! Verifique se entradas/saídas estão corretas.';
+                    alertaSensor.style.display = 'block';
+                } else {
+                    alertaSensor.style.display = 'none';
+                }
 
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);

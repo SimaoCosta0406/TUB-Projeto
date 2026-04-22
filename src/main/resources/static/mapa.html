@@ -66,7 +66,7 @@
         <div class="container card-box">
             <h2>Contagem de Passageiros</h2>
             <p style="color: var(--muted); margin-bottom: 1rem;">Acesso restrito — apenas administradores.</p>
-            <p>Total de passageiros hoje: <strong style="color: var(--amber); font-size: 1.4rem;">1.452</strong></p>
+            <p>Total de passageiros hoje: <strong id="totalPassageiros" style="color: var(--amber); font-size: 1.4rem;">0</strong></p>
         </div>
     </section>
 
@@ -87,9 +87,32 @@
                     if (adminSection) adminSection.style.display = 'block';
                     const contagemSection = document.getElementById('contagem');
                     if (contagemSection) contagemSection.style.display = 'block';
+                    
+                    // Carregar e atualizar total de passageiros
+                    carregarTotalPassageiros();
+                    setInterval(carregarTotalPassageiros, 2000); // Atualizar a cada 2 segundos
                 }
             }
         });
+
+        async function carregarTotalPassageiros() {
+            try {
+                const response = await fetch('/api/passengers/total-entries');
+                const data = await response.json();
+                const elemento = document.getElementById('totalPassageiros');
+                if (elemento) {
+                    // Debug no console
+                    console.log('Total de passageiros carregado:', data);
+                    elemento.textContent = (data.totalEntries || 0).toLocaleString('pt-PT');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar total de passageiros:', error);
+                const elemento = document.getElementById('totalPassageiros');
+                if (elemento) {
+                    elemento.textContent = 'Erro ao carregar';
+                }
+            }
+        }
     </script>
 </body>
 </html>

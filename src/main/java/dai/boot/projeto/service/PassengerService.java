@@ -68,5 +68,40 @@ public class PassengerService {
         LocalDateTime recent = LocalDateTime.now().minusHours(1);
         return repository.findByTimestampAfter(recent);
     }
+
+    // Simular entrada de passageiro
+    public PassengerCount simulateEntry(Long panelId, int count) {
+        PassengerCount record = new PassengerCount();
+        record.setPanelId(panelId);
+        record.setEntryCount(count);
+        record.setExitCount(0);
+        record.setTimestamp(LocalDateTime.now());
+        record.setLine("Simulação");
+        return repository.save(record);
+    }
+
+    // Simular saída de passageiro
+    public PassengerCount simulateExit(Long panelId, int count) {
+        PassengerCount record = new PassengerCount();
+        record.setPanelId(panelId);
+        record.setEntryCount(0);
+        record.setExitCount(count);
+        record.setTimestamp(LocalDateTime.now());
+        record.setLine("Simulação");
+        return repository.save(record);
+    }
+
+    // Total de entradas de todos os painéis
+    public Map<String, Object> getTotalEntries() {
+        List<PassengerCount> all = repository.findAll();
+        int totalEntries = all.stream().mapToInt(PassengerCount::getEntryCount).sum();
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalEntries", totalEntries);
+        result.put("totalExits", all.stream().mapToInt(PassengerCount::getExitCount).sum());
+        result.put("netOccupancy", totalEntries - all.stream().mapToInt(PassengerCount::getExitCount).sum());
+        
+        return result;
+    }
 }
 
