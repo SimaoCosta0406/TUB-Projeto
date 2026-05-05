@@ -141,7 +141,8 @@
                         </td>
                         <td>${vehicle.route ? vehicle.route.code : '-'}</td>
                         <td>
-                            <button onclick="editarVeiculo(${vehicle.id}, '${vehicle.plate}', '${vehicle.model || ''}', ${vehicle.capacity || 0}, '${vehicle.status}')">Editar</button>
+                            <button onclick="abrirEditarVeiculo(this)" data-id="${vehicle.id}" data-plate="${vehicle.plate}" data-model="${vehicle.model || ''}" data-capacity="${vehicle.capacity || 0}" data-status="${vehicle.status}">Editar</button>
+                            <button onclick="abrirGerenciarRota(this)" data-id="${vehicle.id}" data-route-id="${vehicle.route ? vehicle.route.id : ''}" data-plate="${vehicle.plate}" style="background: #3498db;">Rota</button>
                             <button onclick="apagarVeiculo(${vehicle.id})" style="background: #e74c3c;">Apagar</button>
                         </td>
                     `;
@@ -182,6 +183,24 @@
             document.getElementById('vehicleStatus').value = status;
 
             document.getElementById('adminVehiclesSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function abrirEditarVeiculo(button) {
+            const id = button.getAttribute('data-id');
+            const plate = button.getAttribute('data-plate');
+            const model = button.getAttribute('data-model');
+            const capacity = button.getAttribute('data-capacity');
+            const status = button.getAttribute('data-status');
+            
+            editarVeiculo(id, plate, model, capacity, status);
+        }
+
+        function abrirGerenciarRota(button) {
+            const id = button.getAttribute('data-id');
+            const routeId = button.getAttribute('data-route-id');
+            const plate = button.getAttribute('data-plate');
+            
+            gerenciarRotaVeiculo(id, routeId || null, plate);
         }
 
         function limparFormularioVeiculo() {
@@ -281,6 +300,128 @@
             } catch (erro) {
                 console.error('Erro ao apagar veículo:', erro);
                 alert('Erro ao apagar veículo. Tente novamente.');
+            }
+        }
+
+        // ========== GERENCIAMENTO DE ROTAS DO VEÍCULO ==========
+
+        async function gerenciarRotaVeiculo(vehicleId, currentRouteId, vehiclePlate) {
+            try {
+                // Carregar todas as rotas
+                const rotasResponse = await fetch('/api/routes');
+                const rotas = await rotasResponse.json();
+
+                // Criar e abrir modal
+                const modal = document.createElement('div');
+                modal.id = 'modal-gerenciar-rota';
+                modal.style.cssText = `
+                    position: fixed;
+                    inset: 0;
+                    z-index: 9999;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1rem;
+                `;
+
+                let optionsHtml = '<option value="">-- Sem Rota --</option>';
+                rotas.forEach(rota => {
+                    const selected = currentRouteId === rota.id ? 'selected' : '';
+                    optionsHtml += `<option value="${rota.id}" ${selected}>${rota.code} (${rota.origin} → ${rota.destination})</option>`;
+                });
+
+                modal.innerHTML = `
+                    <div style="
+                        background: var(--navy-light);
+                        border: 1px solid rgba(245, 166, 35, 0.2);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        max-width: 500px;
+                        width: 100%;
+                        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+                    ">
+                        <h3 style="color: var(--white); margin-bottom: 0.5rem; font-size: 1.2rem;">
+                            Atribuir Rota
+                        </h3>
+                        <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+                            Veículo: <strong style="color: var(--white);">${vehiclePlate}</strong>
+                        </p>
+                        
+                        <select id="modal-route-select" style="
+                            width: 100%;
+                            padding: 0.7rem;
+                            margin-bottom: 1.5rem;
+                            background: var(--navy);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            color: var(--white);
+                            border-radius: 6px;
+                            font-size: 0.95rem;
+                        ">
+                            ${optionsHtml}
+                        </select>
+
+                        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                            <button onclick="fecharModalRota()" style="
+                                background: transparent;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                color: var(--muted);
+                                padding: 0.6rem 1.2rem;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">
+                                Cancelar
+                            </button>
+                            <button onclick="salvarRotaVeiculo(${vehicleId})" style="
+                                background: #3498db;
+                                border: none;
+                                color: white;
+                                padding: 0.6rem 1.2rem;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                document.getElementById('modal-route-select').focus();
+            } catch (erro) {
+                console.error('Erro ao abrir modal de rota:', erro);
+                alert('Erro ao carregar rotas.');
+            }
+        }
+
+        function fecharModalRota() {
+            const modal = document.getElementById('modal-gerenciar-rota');
+            if (modal) modal.remove();
+        }
+
+        async function salvarRotaVeiculo(vehicleId) {
+            const select = document.getElementById('modal-route-select');
+            const routeId = select.value;
+
+            try {
+                const url = routeId 
+                    ? `/api/vehicles/${vehicleId}/assign-route/${routeId}`
+                    : `/api/vehicles/${vehicleId}/unassign-route`;
+                
+                const resposta = await fetch(url, { method: 'POST' });
+
+                if (resposta.ok) {
+                    alert('Rota atualizada com sucesso!');
+                    fecharModalRota();
+                    carregarVeiculos();
+                } else {
+                    alert('Erro ao atualizar rota.');
+                }
+            } catch (erro) {
+                console.error('Erro ao salvar rota:', erro);
+                alert('Erro ao salvar rota. Tente novamente.');
             }
         }
     </script>

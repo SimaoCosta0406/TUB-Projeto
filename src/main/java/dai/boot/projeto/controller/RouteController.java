@@ -85,7 +85,8 @@ public class RouteController {
     public ResponseEntity<List<Vehicle>> listVehiclesForRoute(@PathVariable Long id) {
         Optional<Route> opt = routeRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        List<Vehicle> vehicles = vehicleRepository.findByRoute_Code(opt.get().getCode());
+        Route route = opt.get();
+        List<Vehicle> vehicles = vehicleRepository.findByRoute(route);
         return ResponseEntity.ok(vehicles);
     }
 
@@ -101,5 +102,49 @@ public class RouteController {
         Route r = opt.get();
         r.setStatus(status);
         return ResponseEntity.ok(routeRepository.save(r));
+    }
+
+    // -------- GERENCIAMENTO DE VEÍCULOS (BIDIRECIONAL) --------
+
+    /**
+     * Adiciona um veículo a esta rota.
+     * O veículo será automaticamente associado à rota.
+     */
+    @PostMapping("/{routeId}/vehicles/{vehicleId}")
+    public ResponseEntity<Route> addVehicleToRoute(@PathVariable Long routeId, @PathVariable Long vehicleId) {
+        Optional<Route> routeOpt = routeRepository.findById(routeId);
+        if (routeOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
+        if (vehicleOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Route route = routeOpt.get();
+        Vehicle vehicle = vehicleOpt.get();
+        
+        // Adiciona o veículo à rota (mantém bidirecionalidade automaticamente)
+        route.addVehicle(vehicle);
+        
+        return ResponseEntity.ok(routeRepository.save(route));
+    }
+
+    /**
+     * Remove um veículo desta rota.
+     * O veículo será automaticamente desassociado da rota.
+     */
+    @DeleteMapping("/{routeId}/vehicles/{vehicleId}")
+    public ResponseEntity<Route> removeVehicleFromRoute(@PathVariable Long routeId, @PathVariable Long vehicleId) {
+        Optional<Route> routeOpt = routeRepository.findById(routeId);
+        if (routeOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
+        if (vehicleOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Route route = routeOpt.get();
+        Vehicle vehicle = vehicleOpt.get();
+        
+        // Remove o veículo da rota (mantém bidirecionalidade automaticamente)
+        route.removeVehicle(vehicle);
+        
+        return ResponseEntity.ok(routeRepository.save(route));
     }
 }

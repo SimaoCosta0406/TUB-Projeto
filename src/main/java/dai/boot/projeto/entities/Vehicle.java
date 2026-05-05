@@ -1,6 +1,7 @@
 package dai.boot.projeto.entities;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Objects;
 
 @Entity
@@ -23,6 +24,7 @@ public class Vehicle {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id")
+    @JsonBackReference
     private Route route;
 
     @Column(columnDefinition = "text")
@@ -65,10 +67,39 @@ public class Vehicle {
     public void setCapacity(Integer capacity)    { this.capacity = capacity; }
 
     public Route getRoute()              { return route; }
-    public void setRoute(Route route)    { this.route = route; }
+    public void setRoute(Route route)    { 
+        // Se estava associado a outra rota, remove desta primeira
+        if (this.route != null && this.route != route) {
+            this.route.getVehicles().remove(this);
+        }
+        
+        this.route = route;
+        
+        // Mantém a relação bidirecional
+        if (route != null && !route.getVehicles().contains(this)) {
+            route.getVehicles().add(this);
+        }
+    }
 
     public String getMetadata()              { return metadata; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    // -------- MÉTODOS PARA GERENCIAR ROTAS (BIDIRECIONAL) --------
+
+    /**
+     * Atribui uma rota a este veículo mantendo a relação bidirecional.
+     * @param route A rota a ser atribuída
+     */
+    public void assignRoute(Route route) {
+        setRoute(route);
+    }
+
+    /**
+     * Remove a rota deste veículo mantendo a relação bidirecional.
+     */
+    public void unassignRoute() {
+        setRoute(null);
+    }
 
     // -------- MÉTODOS AUXILIARES --------
 
@@ -79,9 +110,6 @@ public class Vehicle {
     public void markOutOfService() {
         this.status = "OUT_OF_SERVICE";
     }
-
-    public void assignRoute(Route route)  { this.route = route; }
-    public void unassignRoute()           { this.route = null; }
 
     // -------- EQUALS, HASHCODE E TOSTRING --------
 
