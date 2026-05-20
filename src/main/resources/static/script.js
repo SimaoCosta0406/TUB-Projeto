@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 `;
                             }
                         }
+                        popupContent += `<br><br><button onclick="mostrarTabelaVeiculosPorParagem(${stop.id}, '${stop.name.replace(/'/g, "\\'")}')">Ver veículos</button>`;
 
                         const marcador = L.marker([stop.latitude, stop.longitude])
                             .addTo(map)
@@ -93,8 +94,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 map.setView([stopEncontrado.latitude, stopEncontrado.longitude], 16);
                 L.popup()
                     .setLatLng([stopEncontrado.latitude, stopEncontrado.longitude])
-                    .setContent(`<strong>${stopEncontrado.name}</strong>`)
+                    .setContent(`<strong>${stopEncontrado.name}</strong><br><br><button onclick="mostrarTabelaVeiculosPorParagem(${stopEncontrado.id}, '${stopEncontrado.name.replace(/'/g, "\\'")}')">Ver veículos</button>`)
                     .openOn(map);
+                mostrarTabelaVeiculosPorParagem(stopEncontrado.id, stopEncontrado.name);
             } else {
                 alert("Paragem não encontrada.");
             }
@@ -247,6 +249,66 @@ async function apagarParagem(id) {
         console.error("Erro ao apagar paragem:", erro);
         alert("Erro de ligação ao servidor.");
     }
+}
+
+async function carregarTabelaVeiculosPorParagem(stopId) {
+    const section = document.getElementById('stopsVehiclesSection');
+    const container = document.getElementById('stops-vehicles-list');
+    if (!container || !section) return;
+    container.innerHTML = `<div style="color: var(--muted);">A carregar veículos...</div>`;
+    section.style.display = 'block';
+
+    try {
+        const resposta = await fetch(`/api/stops/${stopId}/vehicles`);
+        const vehicles = await resposta.json();
+
+        if (!vehicles || vehicles.length === 0) {
+            container.innerHTML = `<div style="color: var(--muted);">Nenhum veículo atribuído a esta paragem.</div>`;
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.marginTop = '1rem';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th style="text-align:left; padding:8px;">Placa</th>
+                    <th style="text-align:left; padding:8px;">Modelo</th>
+                    <th style="text-align:left; padding:8px;">Status</th>
+                    <th style="text-align:left; padding:8px;">Capacidade</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
+        vehicles.forEach(v => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:8px; border-top:1px solid rgba(0,0,0,0.08);">${v.plate}</td>
+                <td style="padding:8px; border-top:1px solid rgba(0,0,0,0.08);">${v.model ?? '—'}</td>
+                <td style="padding:8px; border-top:1px solid rgba(0,0,0,0.08);">${v.status ?? '—'}</td>
+                <td style="padding:8px; border-top:1px solid rgba(0,0,0,0.08);">${v.capacity != null ? v.capacity : '—'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        container.innerHTML = '';
+        container.appendChild(table);
+    } catch (err) {
+        console.error('Erro ao carregar veículos por paragem:', err);
+        container.innerHTML = `<div style="color: var(--danger);">Erro ao carregar veículos.</div>`;
+    }
+}
+
+function mostrarTabelaVeiculosPorParagem(id, stopName) {
+    const title = document.getElementById('stopVehiclesTitle');
+    const section = document.getElementById('stopsVehiclesSection');
+    if (title) title.innerText = `Veículos na paragem: ${stopName}`;
+    if (section) section.style.display = 'block';
+    carregarTabelaVeiculosPorParagem(id);
 }
 
 ///////////////////// Navegação por secções (index.html) /////////////////////
@@ -508,3 +570,4 @@ async function adminMarcarInconsistente(id) {
         console.error("Erro ao marcar inconsistente:", err);
     }
 }
+
