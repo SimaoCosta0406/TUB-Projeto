@@ -46,16 +46,23 @@ public class RouteController {
 
     @PostMapping
     public ResponseEntity<Route> create(@RequestBody Route route) {
-        try {
-            Route saved = routeRepository.save(route);
-            return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(saved.getId())
-                    .toUri())
-                    .body(saved);
-        } catch (Exception e) {
+        // Validação básica: o código da rota é obrigatório e único
+        if (route.getCode() == null || route.getCode().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
+
+        // Verificar existência de código igual
+        Optional<Route> existente = routeRepository.findByCode(route.getCode().trim());
+        if (existente.isPresent()) {
+            return ResponseEntity.status(409).build(); // Conflito: código já existente
+        }
+
+        Route saved = routeRepository.save(route);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(saved.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(saved);
     }
 
     @PutMapping("/{id}")
@@ -64,7 +71,15 @@ public class RouteController {
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
 
         Route route = opt.get();
-        route.setCode(routeDetails.getCode());
+        // Se tentou alterar o código, verificar conflito
+        String newCode = routeDetails.getCode();
+        if (newCode != null && !newCode.equals(route.getCode())) {
+            Optional<Route> other = routeRepository.findByCode(newCode);
+            if (other.isPresent() && !other.get().getId().equals(id)) {
+                return ResponseEntity.status(409).build();
+            }
+            route.setCode(newCode);
+        }
         route.setOrigin(routeDetails.getOrigin());
         route.setDestination(routeDetails.getDestination());
         route.setStops(routeDetails.getStops());
