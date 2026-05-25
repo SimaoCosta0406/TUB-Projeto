@@ -199,22 +199,27 @@
                 const stops = await resposta.json();
 
                 // Filtrar paragens que pertencem a esta rota
-                // Suporta rota.stops contendo nomes, ids (strings) ou códigos.
+                // Suporta rota.stops contendo nomes, ids (strings), códigos e entradas multi-token (comma/semicolon)
                 const paragensDaRota = stops.filter(stop => {
                     if (!rota.stops || rota.stops.length === 0) return false;
                     return rota.stops.some(entry => {
                         if (entry == null) return false;
-                        const e = String(entry).trim();
-                        // comparar com name exato
-                        if (stop.name && stop.name === e) return true;
-                        // comparar quando o nome contém o código (ex: "0001 - Ponte")
-                        if (stop.name && stop.name.includes(e)) return true;
-                        // comparar com id
-                        if (stop.id && String(stop.id) === e) return true;
-                        // comparar com possíveis campos opcionais (code/metadata)
-                        if (stop.code && String(stop.code) === e) return true;
-                        if (stop.metadata && String(stop.metadata).includes(e)) return true;
-                        return false;
+                        // Se a entry contiver múltiplos tokens (ex: "0001,0007"), separamos
+                        const tokens = String(entry).split(/[,;]+/).map(t => t.trim()).filter(Boolean);
+                        return tokens.some(e => {
+                                // normalizar token e name para case-insensitive
+                                const token = e.toLowerCase();
+                                // 1) nome exato (case-insensitive)
+                                if (stop.name && stop.name.toLowerCase() === token) return true;
+                                // 2) código exato (se existir)
+                                if (stop.code && String(stop.code) === e) return true;
+                                // 3) id numérico apenas quando token não tem zeros à esquerda
+                                const n = Number(e);
+                                if (!isNaN(n) && String(n) === e && stop.id != null && Number(stop.id) === n) return true;
+                                // 4) metadata exata
+                                if (stop.metadata && String(stop.metadata) === e) return true;
+                            return false;
+                        });
                     });
                 });
 

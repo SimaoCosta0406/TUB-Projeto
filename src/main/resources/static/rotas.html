@@ -38,7 +38,7 @@
                 <input type="text" id="routeCode" placeholder="Código da rota" />
                 <input type="text" id="routeOrigin" placeholder="Origem" />
                 <input type="text" id="routeDestination" placeholder="Destino" />
-                <textarea id="routeStops" placeholder="Paragens (uma por linha)" rows="4"></textarea>
+                <textarea id="routeStops" placeholder="Paragens (uma por linha — aceite código ou nome)" rows="4"></textarea>
                 <select id="routeStatus">
                     <option value="ACTIVE">Ativa</option>
                     <option value="INACTIVE">Inativa</option>
@@ -241,15 +241,56 @@
                 return;
             }
 
-            const stops = stopsText ? stopsText.split('\n').map(stop => stop.trim()).filter(stop => stop) : [];
+                // Resolver cada entrada como código ou nome de paragem.
+                // Aceita múltiplas paragens numa linha separadas por vírgula ou ponto e vírgula.
+                let stops = [];
+                if (stopsText) {
+                    stops = stopsText
+                        .split(/\r?\n/)                    // linhas
+                        .flatMap(line => line.split(/[,;]+/)) // separar por vírgulas/; dentro da linha
+                        .map(s => s.trim())
+                        .filter(s => s);
+                }
 
-            const route = {
-                code: code,
-                origin: origin || null,
-                destination: destination || null,
-                stops: stops,
-                status: status
-            };
+                try {
+                    const stopsResp = await fetch('/api/stops');
+                    if (stopsResp.ok) {
+                        const allStops = await stopsResp.json();
+                        stops = stops.map(entry => {
+                            const e = String(entry).trim();
+                            // procurar por token (entry já foi separado por ,/;)
+                            // Normalizar token para comparação case-insensitive
+                                const token = e.toLowerCase();
+                                // 1) Correspondência exata por nome (case-insensitive)
+                                let found = allStops.find(st => st.name && st.name.toLowerCase() === token);
+                                if (found) return found.name;
+                                // 2) Correspondência exata por código (se existir campo `code`)
+                                found = allStops.find(st => st.code && String(st.code) === e);
+                                if (found) return found.name;
+                                // 3) Comparar por id numérico apenas quando o token não tem zeros à esquerda
+                                const n = Number(e);
+                                if (!isNaN(n) && String(n) === e) {
+                                    found = allStops.find(st => st.id != null && Number(st.id) === n);
+                                    if (found) return found.name;
+                                }
+                                // 4) Comparação por metadata exata (se aplicável)
+                                found = allStops.find(st => st.metadata && String(st.metadata) === e);
+                                if (found) return found.name;
+                            // fallback: enviar o entry tal como foi escrito
+                            return entry;
+                        });
+                    }
+                } catch (err) {
+                    console.error('Erro ao resolver paragens por código:', err);
+                }
+
+                const route = {
+                    code: code,
+                    origin: origin || null,
+                    destination: destination || null,
+                    stops: stops,
+                    status: status
+                };
 
             try {
                 let resposta;
