@@ -11,6 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/alerts")
+@CrossOrigin(origins = "*")
 public class AlertController {
 
     @Autowired

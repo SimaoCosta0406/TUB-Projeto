@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painéis de Informação</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        *{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #000;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: none;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+        }
+
+        .led-panel {
+            width: 100vw;
+            height: 100vh;
+            background-color: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 30px;
+            position: relative;
+        }
+
+        .led-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.8) 2px,
+                rgba(0, 0, 0, 0.8) 4px
+            );
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 15px;
+            border-bottom: 3px solid #ff9800;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            color: #ff9800;
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        .header-brand {
+            color: #ff9800;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-time{
+            color : #ff9800;
+            font-size: 1.5rem;
+            text-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
+        }
+
+        .header-stop {
+            color: #ff9800;
+            font-size: 0.9rem;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 200px 100px;
+            padding: 10px 15px;
+            border-bottom: 2px solid #333;
+            margin-bottom: 5px;
+        }
+
+        .table-header span {
+            color: #ffb74d;
+            font-size:1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .table-header span:last-child {
+            text-align: right;
+        }
+
+        .arrivals-container {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .arrivals-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 200px 100px;
+            padding: 14px 15px;
+            border-bottom: 1px solid #1a1a1a;
+            animation: fadeIn 0.5s ease-in;
+            transition: all 0.3s;
+        }
+
+        .arrivals-row:hover {
+            background-color: rgba(255, 152, 0, 0.05);
+        }
+
+        .arrival-row .route-code {
+            color: #ffc107;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 12px rgba(255, 193, 7, 0.6);
+            line-height: 1;
+        }
+
+        .arrival-row .destination {
+            color: #ff9800;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 152, 0, 0.4);
+            letter-spacing: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1;
+        }
+
+        .arrival-row .capacity {
+            color: #ffb74d;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 0 6px rgba(255, 183, 77, 0.3);
+        }
+
+        .arrival-row .eta{
+            color: #ffc107;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 0 6px rgba(255, 193, 77, 0.3);
+        }
+
+        .capacity-bar{
+            width: 80px;
+            height: 8px;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .capacity-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .capacity-fill.low { background-color: #4caf50; }
+        .capacity-fill.medium { background-color: #ffeb3b; }
+        .capacity-fill.high { background-color: #f44336; }
+
+        .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+            font-size: 1.5rem;
+        }
+
+        .no-data .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .panel-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 2px solid #333;
+            margin-top: 10px;
+        }
+
+        .footer-info {
+            color: #555;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        footer-brand {
+            color: #555;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+
+        .btn-back {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-back:hover{
+            opacity: 1;
+            background: rgba(255, 152, 0, 0.15);
+            cursor: default;
+        }
+
+        .btn-back::after {
+            content: '←';
+            color: #ff9800;
+            font-size: 0.7rem;
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .blink {
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .scroll-banner {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 10px 0;
+        }
+
+        .scroll-text {
+            display: inline-block;
+            color: #ff9800;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            animation: scroll 30s linear infinite;
+        }
+
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .update-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            z-index: 50;
+            transition: background 0.3s;
+        }
+
+        .update-indicator.updating {
+            background: #ffc107;
+            animation: blink 0.5s ease-in-out;
+        }
+
+        .update-indicator.error {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <button class="btn-back" onclick="voltarMenu()" title="Voltar ao Menu"></button>
+    <div class="led-panel">
+        <div class="panel-header">
+            <div class="header-left">
+                <span class="header-title">Destinos</span>
+                <span class="header-brand">TUB</span>
+         </div>
+            <div class="header-right">
+                <div class="header-time" id="clock">--:--</div>
+                <div class="header-stop" id="stop-name">A carregar...</div>
+            </div>
+        </div>
+    
+
+        <div class="table-header">
+            <span>Código</span>
+            <span>Destino</span>
+            <span>Capacidade</span>
+            <span style="text-align:right">Min.</span>
+        </div>
+
+        <div class="scroll-banner" id="scroll-banner" style="display:none;">
+            <span class="scroll-text" id="scroll-text"></span>
+        </div>
+
+        <div class="arrivals-container" id="arrivals-container">
+            <div class="no-data">
+                <div class="icon">🚍</div>
+                A carregar dados...
+            </div>
+        </div>
+
+        <div class="panel-footer">
+            <span class="footer-info" id="last-update">Última atualização: --:--</span>
+            <span class="footer-brand">Powered by <strong>ami</strong></span>
+        </div>
+    </div>
+
+    <div class="update-indicator" id="update-indicator"></div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const params = new URLSearchParams(window.location.search);
+        const panelId = params.get('id');
+
+        if(!panelId) {
+            document.getElementById('arrivals-container').innerHTML = `
+                <div class="no-data">
+                    <div class="icon">⚠️</div>
+                    Painel inválido. ID ausente.
+                </div>
+            `;
+        } 
+
+        function voltarMenu() {
+            window.location.href = 'paineis-login.html';
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = hh + ':' + mm;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') {
+                voltarMenu();
+            }
+        });
+
+        async function loadPanelData() {
+            if(!panelId) return;
+            const indicator = document.getElementById('update-indicator');
+            indicator.className = 'update-indicator updating';
+            try {
+                const response = await fetch(`${API_BASE}/api/panels/${panelId}/realtime`);
+                if(!response.ok) throw new Error('Erro ao carregar dados');
+                const data = await response.json();
+                atualizarPainel(data);
+                indicator.className = 'update-indicator';
+                const now = new Date();
+                document.getElementById('last-update').textContent = `Última atualização: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }catch(err){
+                console.error('Erro ao carregar dados: ', err);
+                indicator.className = 'update-indicator error';
+            }
+        }
+
+        function renderPainelData(data){
+            document.getElementById('stop-name').textContent = data.stopName || 'Paragem Desconecida';
+
+            const container = document.getElementById('arrivals-container');
+            const arrivals = data.arrivals || [];
+
+            if(arrivals.length === 0){
+                container.innerHTML = `
+                    <div class="no-data">
+                        <div class="icon">⚠️</div>
+                        Sem veículos previstos.
+                    </div>
+                    <div style= "font-size: 0.9rem; margin-top: 8px; opacity: 0.5">Aguarde atualização...</div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            arrivals.forEach((arrival, index) => {
+                const row = document.createElement('div');
+                row.className='arrivals-row';
+                row.style.animationDelay = `${index * 0.1}s`;
+
+                const capacity = arrival.capacity || 0;
+                const occupancy = arrival.currentOccupancy || 0;
+                const occupancyPct = capacity > 0 ? Math.min((occupancy / capacity) * 100, 100) : 0;
+
+                let capacityClass = 'low';
+                if(occupancyPct > 80) capacityClass = 'high';
+                else if(occupancyPct > 40) capacityClass = 'medium';
+
+                const occupancyText = capacity > 0 ? `${occupancy}/${capacity}` : '--';
+                
+                const etaText = arrival.etaMinutes !== undefined ? `${arrival.etaMinutes} min` : '--';
+                const etaClass = arrival.etaMinutes <= 2 ? 'blink' : '';
+
+                row.innerHTML = `
+                    <div class="route-code">${arrival.routeCode || '--'}</div>
+                    <div class="destination">${(arrival.routeDescription || 'Destino Desconecido').toUpperCase()}</div>
+                    <div class="capacity">
+                        <div>
+                            <div>${occupancyText}</div>
+                            <div class="capacity-bar">
+                                <div class="capacity-fill ${capacityClass}" style="width: ${occupancyPct}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eta ${etaClass}">${etaText}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        async function loadMassages() {
+            if(!panelID) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/panels/${panelId}/messages`);
+                if(!response.ok) {
+                    const messages = await response.json();
+                    if(messages.length > 0){
+                        const banner = document.getElementById('scroll-banner');
+                        const text = document.getElementById('scroll-text');
+                        const msgText = msgText;
+                        banner.style.display='block';
+                    }
+                }
+            }catch(err){
+                console.error('Erro ao carregar mensagens: ', err);
+            }
+        }
+        
+        loadPanelData();
+        loadMassages();
+        setInterval(loadPanelData, 15000);
+        setInterval(loadMassages, 60000);
+
+        let cursorTimeout;
+        document.addEventListener('mousemove', () => {
+            document.body.style.cursor = 'default';
+            clearTimeout(cursorTimeout);
+            cursorTimeout = setTimeout(() => {
+                document.body.style.cursor = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

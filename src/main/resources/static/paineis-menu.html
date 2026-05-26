@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TUB - Menu de Painéis</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    * { box-sizing: border-box; }
+    body {
+        background: #1a1a2e;
+        min-height: 100vh;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #e0e0e0;
+    }
+
+    .top-bar {
+        background: #16213e;
+        padding: 14px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #ffc107;
+    }
+
+    .top-bar .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .top-bar .logo-section img {
+        height: 40px;
+    }
+
+    .top-bar .logo-section h1 {
+        font-size: 1.2rem;
+        color: #ffc107;
+        margin: 0;
+    }
+
+    .top-bar .user-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.top-bar .user-section span {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.btn-logout {
+    background: transparent;
+    border: 1px solid #ff5252;
+    color: #ff5252;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: #ff5252;
+    color: #fff;
+}
+
+.main-content {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.section-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+}
+
+.section-tabs button {
+    padding: 12px 24px;
+    background: #16213e;
+    border: 2px solid #2a2a4a;
+    color: #aaaa;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.section-tabs button.active {
+    background: #0f3460;
+    border-color: #ffc107;
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.section-tabs button:hover:not(.active) {
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+.section-panel {
+    display: none;
+    background: #16213e;
+    border-radius: 0 12px 12px 12px;
+    padding: 30px;
+}
+
+.section-panel.active {
+    display: block;
+}
+
+/* Criar Painel */
+.create-form h3 {
+    color: #ffc107;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.create-form .form-group {
+    margin-bottom: 18px;
+}
+
+.create-form label {
+    color: #aaa;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.create-form input,
+.create-form select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #2a2a4a;
+    border-radius: 8px;
+    background: #0f0f23;
+    color: #e0e0e0;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.create-form input:focus,
+.create-form select:focus {
+    outline: none;
+    border-color: #ffc107;
+}
+
+.create-form select option {
+    background: #0f0f23;
+    color: #e0e0e0;
+}
+
+.btn-create {
+    padding: 12px 30px;
+    background: #ffc107;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-create:hover {
+    background: #ffca28;
+    transform: translateY(-1px);
+}
+
+.btn-create:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Lista de Painéis */
+.panels-list h3 {
+    color: #ffc107;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.panels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.panel-card {
+    background: #0f0f23;
+    border: 2px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.panel-card:hover {
+    border-color: #ffc107;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.15);
+}
+
+.panel-card .panel-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffc107;
+    margin-bottom: 8px;
+}
+
+.panel-card .panel-stop {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.panel-card .panel-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+.panel-card .panel-status.active {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.panel-card .panel-status.error {
+    background: rgba(255, 82, 82, 0.2);
+    color: #ff5252;
+}
+
+.panel-card .btn-delete {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.panel-card .btn-delete:hover {
+    color: #ff5252;
+    background: rgba(255, 82, 82, 0.1);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.empty-state span {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.msg-success {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: none;
+}
+
+.msg-error {
+    background: rgba(255, 82, 82, 0.15);
+    color: #ff5252;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: none;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    color: #aaa;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffc107;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+</style>
+</head>
+<body>
+    <body>
+    <div class="top-bar">
+        <div class="logo-section">
+            <img src="transferir.png" alt="Logo TUB">
+            <h1>Painéis de Informação</h1>
+        </div>
+        <div class="user-section">
+            <span id="user-display"></span>
+            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="section-tabs">
+            <button id="tab-list" class="active" onclick="showTab('list')">🗂 Painéis Criados</button>
+            <button id="tab-create" onclick="showTab('create')">➕ Criar Novo Painel</button>
+        </div>
+
+        <!-- Lista de Painéis -->
+        <div id="section-list" class="section-panel active">
+            <div class="panels-list">
+                <h3>Painéis Existentes</h3>
+                <div id="panels-container" class="panels-grid">
+                    <div class="loading">A carregar painéis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Criar Painel -->
+        <div id="section-create" class="section-panel">
+            <div class="create-form">
+                <h3>Configurar Novo Painel</h3>
+                <div id="create-success" class="msg-success"></div>
+                <div id="create-error" class="msg-error"></div>
+                <div class="form-group">
+                    <label for="panel-name">Nome do Painel</label>
+                    <input type="text" id="panel-name" placeholder="Ex: Painel Avenida Central">
+                </div>
+                <div class="form-group">
+                    <label for="panel-stop">Paragem</label>
+                    <select id="panel-stop">
+                        <option value="">Selecionar paragem...</option>
+                    </select>
+                </div>
+                <button class="btn-create" id="bnt-create" onclick="criarPainel()">Criar Painel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // Verificar autenticação
+        if (!sessionStorage.getItem('panelToken')) {
+            window.location.href = 'paineis-login.html';
+        }
+
+        document.getElementById('user-display').textContent =
+            '👤 ' + (sessionStorage.getItem('panelUser') || 'Utilizador');
+
+        function showTab(tab) {
+            document.querySelectorAll('.section-tabs button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.section-panel').forEach(s => s.classList.remove('active'));
+
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('section-' + tab).classList.add('active');
+
+        if (tab === 'list') loadPanels();
+    }
+
+    function fazerLogout() {
+        const username = sessionStorage.getItem('panelUser');
+        if (username) {
+            fetch(`${API_BASE}/api/auth/logout?username=${encodeURIComponent(username)}`, { method: 'POST' }).catch(() => {});
+        }
+        sessionStorage.removeItem('panelToken');
+        sessionStorage.removeItem('panelUser');
+        window.location.href = 'paineis-login.html';
+    }
+
+    async function loadStops(){
+        try{
+            const response = await fetch(`${API_BASE}/api/stops`);
+            const stops = await response.json();
+            const select = document.getElementById('panel-stop');
+
+            stops.forEach(stop => {
+            const option = document.createElement('option');
+            option.value = stop.id;
+            option.textContent = stop.name + (stop.latitude ? ` (${stop.latitude.toFixed(4)}, ${stop.longitude.toFixed(4)})` : '');
+            select.appendChild(option);
+        });
+        }catch (err) {
+        console.error('Erro ao carregar paragens:', err);
+        }
+    }
+
+    async function loadPanels() {
+        const container = document.getElementById('panels-container');
+        container.innerHTML = '<div class="loading">A carregar painéis</div>';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/panels`);
+            const panels = await response.json();
+
+            if (panels.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span>🗂</span>
+                        <p>Nenhum painel criado ainda.</p>
+                        <p style="font-size:0.85rem">Clique em "Criar Novo Painel" para começar.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            panels.forEach(panel => {
+                const card = document.createElement('div');
+                card.className = 'panel-card';
+                card.onclick = () => abrirPainel(panel.id);
+
+                const statusClass = panel.status === 'ERROR' ? 'error' : 'active';
+                const statusText = panel.status || 'ACTIVE';
+                const stopName = panel.stop ? panel.stop.name : 'Sem paragem';
+
+                card.innerHTML = `
+                    <button class="btn-delete" onclick="event.stopPropagation(); eliminarPainel(${panel.id})" title="Eliminar painel">🗑</button>
+                    <div class="panel-name">${panel.location || 'Painel #' + panel.id}</div>
+                    <div class="panel-stop">🛑 ${stopName}</div>
+                    <span class="panel-status ${statusClass}">${statusText}</span>
+                `;
+                container.appendChild(card);
+            });
+        } catch (err) {
+            container.innerHTML = '<div class="empty-state"><span>⚠️</span><p>Erro ao carregar painéis.</p></div>';
+            console.error('Erro:', err);
+        }
+    }
+
+    function abrirPainel(panelId) {
+    window.location.href = `paineis-display.html?id=${panelId}`;
+    }
+
+    async function criarPainel() {
+        const name = document.getElementById('panel-name').value.trim();
+        const stopId = document.getElementById('panel-stop').value;
+        const successDiv = document.getElementById('create-success');
+        const errorDiv = document.getElementById('create-error');
+
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+
+        if (!name) {
+            errorDiv.textContent = 'Introduza um nome para o painel.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        if (!stopId) {
+            errorDiv.textContent = 'Seleccione uma paragem.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        const btn = document.getElementById('btn-create');
+        btn.disabled = true;
+        btn.textContent = 'A criar...';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/panels/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, stopId: parseInt(stopId) })
+            });
+
+            if(response.ok) {
+                const panel = await response.json();
+                successDiv.textContent = `Painel "${panel.location}" criado com sucesso!`;
+                successDiv.style.display = 'block';
+                document.getElementById('panel-name').value = '';
+                document.getElementById('panel-stop').value = '';
+
+                setTimeout(() => showTab('list'), 2000);
+            }else{
+                const err= await response.text();
+                errorDiv.textContent = 'Erro: ' + (err.error || 'Não foi possível criar o painel.');
+                errorDiv.style.display = 'block';
+            }
+        }catch (err) {
+            errorDiv.textContent = 'Erro: ' + (err.error || 'Não foi possível criar o painel.');
+            errorDiv.style.display = 'block';
+        }finally{
+            btn.disabled = false;
+            btn.textContent = 'Criar Painel';
+        }
+    }
+
+    async function eliminarPainel(panelId) {
+        if(!confirm('Tem certeza que deseja eliminar este painel?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/api/panels/${panelId}`, { method: 'DELETE' });
+            if(response.ok) {
+                loadPanels();
+            }else{
+                alert('Erro ao eliminar painel.');
+            }
+        }catch (err) {
+            alert('Erro ao eliminar painel.');
+            console.error('Erro:', err);
+        }
+    }
+
+    loadStops();
+    loadPanels();
+    </script>
+</body>
+</html>
+
