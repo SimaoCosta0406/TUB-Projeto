@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUB Projeto - Supervisor - Alarmes</title>
+    <title>TUB — Supervisor</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,26 +11,24 @@
         <div class="container">
             <img src="transferir.png" class="logo" alt="Logo TUB">
             <ul class="nav-links">
-                <li><a href="supervisor.html">Alarmes</a></li>
-                <li id="nav-logout" style="display: none;">
+                <!-- Supervisor só vê o logout -->
+                <li id="nav-logout">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
                 </li>
             </ul>
         </div>
     </nav>
 
-    <section id="alarmes" class="admin-only" style="display: block; margin-top: 100px;">
+    <section class="admin-only" style="padding-top: 5rem;">
         <div class="card-full">
-            <h2 id="alarmes-titulo" style="font-family: var(--font-display); color: var(--amber); font-size: 2rem; margin-bottom: 1rem;">
-                🚨 Gestão de Alarmes
-            </h2>
- 
+            <h2>Gestão de Alarmes</h2>
+
             <div id="alarm-stats" class="stats-container">
                 <div class="stat-card high">Críticos <span id="count-high">0</span></div>
                 <div class="stat-card medium">Atenção <span id="count-medium">0</span></div>
                 <div class="stat-card low">Info <span id="count-low">0</span></div>
             </div>
- 
+
             <table id="table-alerts">
                 <thead>
                     <tr>
@@ -41,18 +39,25 @@
                         <th>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="alerts-body"></tbody>
+                <tbody id="alerts-body">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">
+                            A carregar alertas...
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </section>
- 
+
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>
- 
+
     <script src="script.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
+        // Proteger a página — só supervisores podem aceder
+        document.addEventListener("DOMContentLoaded", function () {
             const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
             if (!utilizadorGuardado) {
                 window.location.href = 'login.html';
@@ -63,12 +68,10 @@
                 window.location.href = 'index.html';
                 return;
             }
-
-            const navLogout = document.getElementById('nav-logout');
-            if (navLogout) navLogout.style.display = 'inline-block';
-
-            await carregarAlarmes();
-            setInterval(() => carregarAlarmes(), 10000);
+            // Carregar alarmes ao entrar
+            carregarAlarmesParaSupervisor();
+            // Atualizar a cada 10 segundos
+            setInterval(carregarAlarmesParaSupervisor, 10000);
         });
     </script>
 </body>
