@@ -32,4 +32,13 @@ public interface AlertService {
     Alert markAsInconsistent(Long id, String username);
 
     Map<String, Long> getSeverityStats();
+
+    // Retorna as opções disponíveis para criar um alerta
+    Map<String, Object> getAlertOptions();
+
+    // Supervisor atualiza o estado e ações do alerta
+    Alert updateAlertStateAndActions(Long id, String newStatus, String recommendedActionsJson, String supervisorUsername);
+
+    // Alertas aprovados para o trabalhador ver
+    List<Alert> getWorkerAlerts();
 }

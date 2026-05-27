@@ -1,0 +1,10 @@
+{
+  "id": 4,
+  "username": "worker@tub.pt",
+  "nome": "Trabalhador TUB",
+  "role": "WORKER",
+  "verticais_acesso": ["alarmes"],
+  "permissoes": [
+    "enviar_alarmes"
+  ]
+}

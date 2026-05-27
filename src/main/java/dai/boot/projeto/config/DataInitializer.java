@@ -15,6 +15,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         createPanelUser();
+        createWorkerUser();
     }
 
     private void createPanelUser() {
@@ -27,6 +28,19 @@ public class DataInitializer implements CommandLineRunner {
             painel.setRole("ADMIN");
             painel.setOnline(false);
             userRepository.save(painel);
+        }
+    }
+
+    private void createWorkerUser() {
+        String username = "worker@tub.pt";
+        if (!userRepository.existsByUsername(username)) {
+            User worker = new User();
+            worker.setUsername(username);
+            worker.setPassword("worker");
+            worker.setEmail(username);
+            worker.setRole("WORKER");
+            worker.setOnline(false);
+            userRepository.save(worker);
         }
     }
 }

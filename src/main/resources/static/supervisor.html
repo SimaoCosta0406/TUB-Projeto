@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Supervisor - Alarmes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="supervisor.html">Alarmes</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="alarmes" class="admin-only" style="display: block; margin-top: 100px;">
+        <div class="card-full">
+            <h2 id="alarmes-titulo" style="font-family: var(--font-display); color: var(--amber); font-size: 2rem; margin-bottom: 1rem;">
+                🚨 Gestão de Alarmes
+            </h2>
+ 
+            <div id="alarm-stats" class="stats-container">
+                <div class="stat-card high">Críticos <span id="count-high">0</span></div>
+                <div class="stat-card medium">Atenção <span id="count-medium">0</span></div>
+                <div class="stat-card low">Info <span id="count-low">0</span></div>
+            </div>
+ 
+            <table id="table-alerts">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Gravidade</th>
+                        <th>Estado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="alerts-body"></tbody>
+            </table>
+        </div>
+    </section>
+ 
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+ 
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'SUPERVISOR') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const navLogout = document.getElementById('nav-logout');
+            if (navLogout) navLogout.style.display = 'inline-block';
+
+            await carregarAlarmes();
+            setInterval(() => carregarAlarmes(), 10000);
+        });
+    </script>
+</body>
+</html>

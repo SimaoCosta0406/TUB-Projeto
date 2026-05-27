@@ -130,6 +130,8 @@ async function validarLogin() {
         ficheiroParaLer = 'teste_supervisor.json';
     } else if (email === 'user@tub.pt') {
         ficheiroParaLer = 'teste_utilizador.json';
+    } else if (email === 'worker@tub.pt') {
+        ficheiroParaLer = 'teste_worker.json';
     } else {
         document.getElementById('erro-msg').style.display = 'block';
         return;
@@ -140,7 +142,14 @@ async function validarLogin() {
         const dadosUtilizador = await resposta.json();
         localStorage.setItem('utilizadorAtivo', JSON.stringify(dadosUtilizador));
         document.getElementById('erro-msg').style.display = 'none';
-        window.location.href = 'mapa.html';
+        
+        if (dadosUtilizador.role === 'WORKER') {
+            window.location.href = 'worker.html';
+        } else if (dadosUtilizador.role === 'SUPERVISOR') {
+            window.location.href = 'supervisor.html';
+        } else {
+            window.location.href = 'mapa.html';
+        }
     } catch (erro) {
         console.error("Erro ao ler o ficheiro JSON:", erro);
         alert("Erro no login! Confirma se os ficheiros de teste estão na pasta.");
@@ -174,6 +183,11 @@ function verificarAcessos() {
             if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
             if (navVeiculos) navVeiculos.style.display = 'inline-block';
             if (navRotas) navRotas.style.display = 'inline-block';
+        }
+        if (utilizador.role === 'SUPERVISOR') {
+            if (navMonitorizacao) navMonitorizacao.style.display = 'none';
+            if (navVeiculos) navVeiculos.style.display = 'none';
+            if (navRotas) navRotas.style.display = 'none';
         }
     } else {
         if (navLogin)         navLogin.style.display         = 'inline-block';
@@ -332,6 +346,16 @@ function mostrarSecao(idAlvo) {
 document.addEventListener("DOMContentLoaded", function () {
     const eIndexPage = !!document.getElementById('home');
     if (!eIndexPage) return;
+    
+    const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+    if (utilizadorGuardado) {
+        const utilizador = JSON.parse(utilizadorGuardado);
+        if (utilizador.role === 'SUPERVISOR') {
+            mostrarSecao('alarmes');
+            return;
+        }
+    }
+    
     ['home', 'about', 'contact'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
@@ -404,7 +428,7 @@ async function carregarAlarmesParaSupervisor() {
                     <td class="severity-${(alert.severity ?? '').toLowerCase()}">${alert.severity ?? '—'}</td>
                     <td>${badgeStatus}${motivoHtml}</td>
                     <td>
-                        <button onclick="supervisorAceitarAlerta(${alert.id})" class="btn-acao">✅ Aceitar</button>
+                        <button onclick="abrirModalEstadoAcoes(${alert.id})" class="btn-acao">✅ Processar</button>
                     </td>
                 </tr>
             `;
@@ -421,6 +445,167 @@ async function supervisorAceitarAlerta(id) {
         await carregarAlarmes();
     } catch (err) {
         console.error("Erro ao aceitar alerta:", err);
+    }
+}
+
+// ── MODAL ESTADO E AÇÕES (SUPERVISOR) ──────────────────
+
+async function abrirModalEstadoAcoes(alertId) {
+    const anterior = document.getElementById('modal-estado-acoes');
+    if (anterior) anterior.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-estado-acoes';
+    modal.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(7,14,22,0.85);
+        display: flex; align-items: center; justify-content: center;
+    `;
+
+    // Carrega as opções de ações
+    let opcoes = {};
+    try {
+        const res = await fetch('/api/alerts/options');
+        if (res.ok) opcoes = await res.json();
+    } catch (e) {
+        console.error("Erro ao carregar opções:", e);
+    }
+
+    const acoes = opcoes.acoes || [];
+    const estados = ['ACTIVE', 'PENDING', 'ACCEPTED', 'RESOLVED'];
+
+    let acoesBotoes = acoes.map(acao => `
+        <label style="display: flex; align-items: center; margin-bottom: 0.6rem; cursor: pointer;">
+            <input type="checkbox" value="${acao}" style="margin-right: 0.5rem; cursor: pointer;">
+            <span style="color: var(--white); font-size: 0.9rem;">${acao}</span>
+        </label>
+    `).join('');
+
+    let estadosBotoes = estados.map(estado => `
+        <option value="${estado}">${estado}</option>
+    `).join('');
+
+    modal.innerHTML = `
+        <div style="
+            background: var(--navy-light);
+            border: 1px solid rgba(245, 166, 35, 0.2);
+            border-radius: 12px;
+            padding: 2rem 2.5rem;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            animation: fadeUp 0.2s ease both;
+            max-height: 90vh;
+            overflow-y: auto;
+        ">
+            <h3 style="font-family:var(--font-display); color:var(--amber); font-size:1.2rem; margin-bottom:1rem;">
+                ⚙️ Estado e Ações Recomendadas
+            </h3>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--white); font-size: 0.95rem;">
+                    Estado do Alarme
+                </label>
+                <select id="novo-estado" style="
+                    width: 100%; padding: 0.75rem 1rem;
+                    background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px; color: var(--white); font-family: var(--font-body);
+                    font-size: 0.95rem; outline: none;
+                ">
+                    ${estadosBotoes}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: var(--white); font-size: 0.95rem;">
+                    Ações Recomendadas ao Motorista
+                </label>
+                <div style="
+                    background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px; padding: 1rem;
+                    max-height: 250px; overflow-y: auto;
+                ">
+                    ${acoesBotoes}
+                </div>
+            </div>
+
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                <button
+                    onclick="fecharModalEstadoAcoes()"
+                    style="
+                        background:transparent; border:1px solid rgba(255,255,255,0.15);
+                        color:var(--muted); border-radius:7px;
+                        font-family:var(--font-display); font-size:0.82rem;
+                        font-weight:600; letter-spacing:0.05em; text-transform:uppercase;
+                        padding:0.6rem 1.2rem; cursor:pointer;
+                    "
+                >Cancelar</button>
+                <button
+                    onclick="enviarEstadoEAcoes(${alertId})"
+                    style="
+                        background:var(--info); border:none; color:white;
+                        border-radius:7px; font-family:var(--font-display);
+                        font-size:0.82rem; font-weight:700; letter-spacing:0.05em;
+                        text-transform:uppercase; padding:0.6rem 1.4rem; cursor:pointer;
+                    "
+                >Enviar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+function fecharModalEstadoAcoes() {
+    const modal = document.getElementById('modal-estado-acoes');
+    if (modal) modal.remove();
+}
+
+async function enviarEstadoEAcoes(alertId) {
+    try {
+        const novoEstado = document.getElementById('novo-estado').value;
+        if (!novoEstado) {
+            alert('Seleciona um estado para o alarme.');
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('#modal-estado-acoes input[type="checkbox"]:checked');
+        const acoesSelecionadas = Array.from(checkboxes).map(cb => cb.value);
+        const acoesParsed = JSON.stringify(acoesSelecionadas);
+
+        const username = getUsernameAtivo();
+        if (!username) {
+            alert('Erro: utilizador não autenticado.');
+            return;
+        }
+
+        const payload = {
+            newStatus: novoEstado,
+            recommendedActionsJson: acoesParsed,
+            username: username
+        };
+
+        console.log('Enviando payload:', payload);
+
+        const respostaBusca = await fetch(`/api/alerts/${alertId}/update-state-and-actions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        console.log('Resposta status:', respostaBusca.status);
+
+        if (respostaBusca.ok) {
+            fecharModalEstadoAcoes();
+            await carregarAlarmes();
+        } else {
+            const erroMsg = await respostaBusca.text();
+            console.error('Erro do servidor:', erroMsg);
+            alert('Erro ao atualizar o alarme: ' + respostaBusca.status);
+        }
+    } catch (erro) {
+        console.error('Exceção:', erro);
+        alert('Erro ao enviar as alterações: ' + erro.message);
     }
 }
 

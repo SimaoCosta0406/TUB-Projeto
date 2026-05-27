@@ -104,4 +104,76 @@ public class AlertServiceImpl implements AlertService {
                         Collectors.counting()
                 ));
     }
+
+    @Override
+    public Map<String, Object> getAlertOptions() {
+        Map<String, Object> opcoes = new java.util.HashMap<>();
+        
+        // Tipos de alarmes
+        opcoes.put("tipos", java.util.Arrays.asList(
+                "Acidente",
+                "Avaria de Veículo",
+                "Tráfego Congestionado",
+                "Segurança",
+                "Manutenção",
+                "Passageiros",
+                "Outro"
+        ));
+
+        // Gravidades
+        opcoes.put("gravidades", java.util.Arrays.asList(
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+        ));
+
+        // Estados
+        opcoes.put("estados", java.util.Arrays.asList(
+                "ACTIVE",
+                "PENDING",
+                "ACCEPTED",
+                "RESOLVED"
+        ));
+
+        // Ações recomendadas
+        opcoes.put("acoes", java.util.Arrays.asList(
+                "Parar Veículo",
+                "Deslocar Supervisor",
+                "Contactar Polícia",
+                "Contactar Bombeiros",
+                "Contactar Ambulância",
+                "Comunicar a Passageiros",
+                "Reparação no Local",
+                "Encaminhar para Garagem",
+                "Aumentar Frequência",
+                "Reduzir Frequência",
+                "Desviar Rota",
+                "Sem Ação Imediata"
+        ));
+
+        return opcoes;
+    }
+
+    @Override
+    public Alert updateAlertStateAndActions(Long id, String newStatus, String recommendedActionsJson, String supervisorUsername) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Alerta não encontrado: " + id));
+
+        alert.setStatus(newStatus);
+        alert.setRecommendedActions(recommendedActionsJson);
+        if ("ACCEPTED".equalsIgnoreCase(newStatus)) {
+            alert.setAcceptedBy(supervisorUsername);
+            alert.setInconsistentReason(null);
+        } else if ("PENDING".equalsIgnoreCase(newStatus)) {
+            alert.setAcceptedBy(null);
+        }
+        return alertRepository.save(alert);
+    }
+
+    @Override
+    public List<Alert> getWorkerAlerts() {
+        return alertRepository.findAll().stream()
+                .filter(a -> "ACCEPTED".equals(a.getStatus()))
+                .collect(Collectors.toList());
+    }
 }
