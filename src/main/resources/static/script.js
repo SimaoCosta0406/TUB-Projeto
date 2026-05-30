@@ -31,6 +31,14 @@ document.addEventListener("DOMContentLoaded", function () {
             attribution: "&copy; OpenStreetMap contributors"
         }).addTo(map);
 
+        const painelIcon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [35, 55],
+            iconAnchor: [17, 55],
+            popupAnchor: [1, -45],
+            shadowSize: [55, 55]
+        });
         let marcadores = [];
         let stopsGuardados = [];
 
@@ -65,10 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                         popupContent += `<br><br><button onclick="mostrarTabelaVeiculosPorParagem(${stop.id}, '${stop.name.replace(/'/g, "\\'")}')">Ver veículos</button>`;
 
-                        const marcador = L.marker([stop.latitude, stop.longitude])
+                        const marcador = L.marker([stop.latitude, stop.longitude], { icon: painelIcon })
                             .addTo(map)
                             .bindPopup(popupContent);
-                        marcadores.push(marcador);
                     }
                 });
             } catch (erro) {
