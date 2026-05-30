@@ -29,25 +29,27 @@
 
     <section class="login-section">
         <div class="login-card">
-            <h2>Bem-vindo</h2>
-            <p>Entra na tua conta TUB para continuar.</p>
+            <h2>Bem-vindo ao TUB</h2>
+            <p>Faça login para aceder ao sistema completo.</p>
 
-            <div class="form-group">
-                <label for="emailInput">Email</label>
-                <input type="email" id="emailInput" placeholder="email@tub.pt" />
+            <!-- Botão Auth0 -->
+            <button id="btn-login-auth0" class="btn-login">
+                🔐 Entrar com Auth0
+            </button>
+
+            <div id="erro-msg" style="display: none; color: #ff5252; margin-top: 1rem; font-size: 0.9rem;">
+                Erro ao autenticar. Tente novamente.
             </div>
 
-            <div class="form-group">
-                <label for="passwordInput">Password</label>
-                <input type="password" id="passwordInput" placeholder="••••••••" />
-            </div>
-
-            <button class="btn-login" onclick="validarLogin()">Entrar</button>
-
-            <div id="erro-msg">Email ou password incorretos.</div>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666;">
+                Visitante? <a href="index.html" style="color: #f5a623;">Voltar à Home</a>
+            </p>
         </div>
     </section>
 
+    <!-- Auth0 SPA SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth0-integration.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
