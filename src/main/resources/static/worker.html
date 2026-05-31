@@ -6,6 +6,9 @@
     <title>TUB Projeto - Trabalhador - Enviar Alarmes</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<script src="auth0-integration.js"></script>
+
 <body>
     <nav class="navbar">
         <div class="container">
@@ -13,7 +16,7 @@
             <ul class="nav-links">
                 <li><a href="worker.html">Início</a></li>
                 <li id="nav-logout" style="display: none;">
-                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                    <a href="javascript:void(0)" onclick="fazerLogoutAuth0()">Sair</a>
                 </li>
             </ul>
         </div>

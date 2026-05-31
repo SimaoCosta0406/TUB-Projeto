@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         const marcador = L.marker([stop.latitude, stop.longitude], { icon: painelIcon })
                             .addTo(map)
                             .bindPopup(popupContent);
+                        marcadores.push(marcador);
                     }
                 });
             } catch (erro) {
@@ -169,13 +170,14 @@ function fazerLogout() {
 }
 
 function verificarAcessos() {
+    const navAdminUsers = document.getElementById('nav-admin-users');
     const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
     const navLogin         = document.getElementById('nav-login');
     const navLogout        = document.getElementById('nav-logout');
     const navAlarmes       = document.getElementById('nav-alarmes');
+    const navMonitorizacao = document.getElementById('nav-monitorizacao');
     const navVeiculos      = document.getElementById('nav-veiculos');
     const navRotas         = document.getElementById('nav-rotas');
-    const navPaineis       = document.getElementById('nav-paineis');
     const navEnviarAlarme  = document.getElementById('nav-enviar-alarme');
     const navHome          = document.querySelector('nav .nav-links a[href="index.html"]')?.closest('li');
     const navMapa          = document.querySelector('nav .nav-links a[href="mapa.html"]')?.closest('li');
@@ -183,7 +185,6 @@ function verificarAcessos() {
     if (utilizadorGuardado) {
         if (navLogin)  navLogin.style.display  = 'none';
         if (navLogout) navLogout.style.display = 'inline-block';
-        if (navPaineis) navPaineis.style.display = 'inline-block';
 
         const utilizador = JSON.parse(utilizadorGuardado);
 
@@ -196,8 +197,14 @@ function verificarAcessos() {
 
         if (utilizador.role === 'ADMIN') {
             if (navAlarmes)       navAlarmes.style.display       = 'inline-block';
+            if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
             if (navVeiculos)      navVeiculos.style.display      = 'inline-block';
             if (navRotas)         navRotas.style.display         = 'inline-block';
+        }
+        if (utilizador.role === 'ADMIN') {
+            if (navAdminUsers) navAdminUsers.style.display = 'inline-block';
+        } else {
+            if (navAdminUsers) navAdminUsers.style.display = 'none';
         }
 
         if (utilizador.role === 'WORKER') {
@@ -208,18 +215,18 @@ function verificarAcessos() {
             if (navAlarmes) navAlarmes.style.display = 'inline-block';
             if (navHome)    navHome.style.display    = 'none';
             if (navMapa)    navMapa.style.display    = 'none';
+            if (navMonitorizacao) navMonitorizacao.style.display = 'none';
             if (navVeiculos)      navVeiculos.style.display      = 'none';
             if (navRotas)         navRotas.style.display         = 'none';
             if (navEnviarAlarme)  navEnviarAlarme.style.display  = 'none';
-            if (navPaineis)       navPaineis.style.display       = 'none';
         }
     } else {
         if (navLogin)         navLogin.style.display         = 'inline-block';
         if (navLogout)        navLogout.style.display        = 'none';
         if (navAlarmes)       navAlarmes.style.display       = 'none';
+        if (navMonitorizacao) navMonitorizacao.style.display = 'none';
         if (navVeiculos)      navVeiculos.style.display      = 'none';
         if (navRotas)         navRotas.style.display         = 'none';
-        if (navPaineis)       navPaineis.style.display       = 'none';
         if (navEnviarAlarme)  navEnviarAlarme.style.display  = 'none';
     }
 }

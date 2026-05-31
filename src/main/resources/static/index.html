@@ -9,15 +9,16 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="javascript:void(0)" onclick="mostrarSecao('home')" class="brand-link" aria-label="Voltar ao Home">
-                <img src="transferir.png" class="logo" alt="Logo TUB">
-            </a>
+            <img src="transferir.png" class="logo" alt="Logo TUB">
             <ul class="nav-links">
                 <li><a href="javascript:void(0)" onclick="mostrarSecao('home')">Home</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-admin-users" style="display:none;">
+                    <a href="admin-users.html">Utilizadores</a>
+                </li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
-                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
+                <li><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;"><a href="javascript:void(0)" onclick="fazerLogout()">Sair</a></li>
                 <li id="nav-alarmes" style="display: none;">
@@ -26,7 +27,7 @@
             </ul>
         </div>
     </nav>
- 
+
     <section id="home" class="hero">
         <div class="container">
             <p>Percursos e Horários</p>
@@ -49,16 +50,20 @@
         </div>
     </section>
 
+    <li id="nav-admin-users" style="display:none;">
+        <a href="admin-users.html">Utilizadores</a>
+    </li>
+
     <section id="alarmes" class="admin-only" style="display: none;">
         <div class="card-full">
             <h2 id="alarmes-titulo">Gestão de Alarmes</h2>
- 
+
             <div id="alarm-stats" class="stats-container">
                 <div class="stat-card high">Críticos <span id="count-high">0</span></div>
                 <div class="stat-card medium">Atenção <span id="count-medium">0</span></div>
                 <div class="stat-card low">Info <span id="count-low">0</span></div>
             </div>
- 
+
             <table id="table-alerts">
                 <thead>
                     <tr>

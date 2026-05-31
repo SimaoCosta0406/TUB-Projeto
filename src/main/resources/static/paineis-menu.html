@@ -311,6 +311,7 @@
 </style>
 </head>
 <body>
+    <body>
     <div class="top-bar">
         <div class="logo-section">
             <img src="transferir.png" alt="Logo TUB">
@@ -354,7 +355,7 @@
                         <option value="">Selecionar paragem...</option>
                     </select>
                 </div>
-                <button class="btn-create" id="btn-create" onclick="criarPainel()">Criar Painel</button>
+                <button class="btn-create" id="bnt-create" onclick="criarPainel()">Criar Painel</button>
             </div>
         </div>
     </div>
@@ -412,8 +413,8 @@
         container.innerHTML = '<div class="loading">A carregar painéis</div>';
 
         try {
-            const panelsResponse = await fetch(`${API_BASE}/api/panels`);
-            const panels = await panelsResponse.json();
+            const response = await fetch(`${API_BASE}/api/panels`);
+            const panels = await response.json();
 
             if (panels.length === 0) {
                 container.innerHTML = `
@@ -434,6 +435,7 @@
                 const statusClass = panel.status === 'ERROR' ? 'error' : 'active';
                 const statusText = panel.status || 'ACTIVE';
                 const stopName = panel.stop ? panel.stop.name : 'Sem paragem';
+
                 card.innerHTML = `
                     <button class="btn-delete" onclick="event.stopPropagation(); eliminarPainel(${panel.id})" title="Eliminar painel">🗑</button>
                     <div class="panel-name">${panel.location || 'Painel #' + panel.id}</div>

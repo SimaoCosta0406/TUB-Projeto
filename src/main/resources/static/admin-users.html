@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Utilizadores - TUB</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+
+        .admin-card h2 {
+            margin-bottom: 20px;
+            color: #0c4a6e;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .form-grid input,
+        .form-grid select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-actions button,
+        .table-actions button {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #0284c7;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+        tbody td {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        tbody tr {
+            background: #ffffff;
+        }
+
+        tbody tr:hover td {
+            color: #0f172a;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .access-denied {
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li id="nav-admin-users" style="display:none;">
+                    <a href="admin-users.html">Utilizadores</a>
+                </li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li><a href="veiculos.html">Veículos</a></li>
+                <li><a href="rotas.html">Rotas</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display:none;"><a href="#" onclick="fazerLogout()">Sair</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="adminPage" class="admin-container" style="display:none;">
+        <div class="admin-card">
+            <h2>Gestão de Utilizadores</h2>
+
+            <input type="hidden" id="userId">
+
+            <div class="form-grid">
+                <input type="text" id="username" placeholder="Username">
+                <input type="email" id="email" placeholder="Email">
+                <input type="password" id="password" placeholder="Password">
+                <select id="role">
+                    <option value="">Selecionar role</option>
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="SUPERVISOR">SUPERVISOR</option>
+                    <option value="WORKER">WORKER</option>
+                    <option value="DRIVER">DRIVER</option>
+                    <option value="USER">USER</option>
+                </select>
+            </div>
+
+            <div class="admin-actions">
+                <button class="btn-primary" onclick="guardarUtilizador()">Guardar</button>
+                <button class="btn-secondary" onclick="limparFormularioUser()">Limpar</button>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h2>Lista de Utilizadores</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Online</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="accessDenied" class="access-denied" style="display:none;">
+        <h2>Acesso Restrito</h2>
+        <p>Apenas administradores podem aceder à gestão de utilizadores.</p>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function verificarAcessoAdminPage() {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            const adminPage = document.getElementById('adminPage');
+            const accessDenied = document.getElementById('accessDenied');
+            const navLogin = document.getElementById('nav-login');
+            const navLogout = document.getElementById('nav-logout');
+
+            if (utilizadorGuardado) {
+                const utilizador = JSON.parse(utilizadorGuardado);
+
+                if (navLogin) navLogin.style.display = 'none';
+                if (navLogout) navLogout.style.display = 'inline-block';
+
+                if (utilizador.role === 'ADMIN') {
+                    adminPage.style.display = 'block';
+                    accessDenied.style.display = 'none';
+                    carregarUtilizadores();
+                } else {
+                    adminPage.style.display = 'none';
+                    accessDenied.style.display = 'block';
+                }
+            } else {
+                adminPage.style.display = 'none';
+                accessDenied.style.display = 'block';
+            }
+        }
+
+        async function carregarUtilizadores() {
+            try {
+                const resposta = await fetch('/api/users');
+                const users = await resposta.json();
+
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.id ?? ''}</td>
+                        <td>${user.username ?? ''}</td>
+                        <td>${user.email ?? ''}</td>
+                        <td>${user.role ?? ''}</td>
+                        <td>${user.online ? 'Sim' : 'Não'}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-primary" onclick="editarUtilizador(${user.id}, '${(user.username || '').replace(/'/g, "\\'")}', '${(user.email || '').replace(/'/g, "\\'")}', '${(user.password || '').replace(/'/g, "\\'")}', '${(user.role || '').replace(/'/g, "\\'")}')">Editar</button>
+                                <button class="btn-danger" onclick="apagarUtilizador(${user.id})">Apagar</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (erro) {
+                console.error('Erro ao carregar utilizadores:', erro);
+                alert('Erro ao carregar utilizadores.');
+            }
+        }
+
+        function editarUtilizador(id, username, email, password, role) {
+            document.getElementById('userId').value = id;
+            document.getElementById('username').value = username;
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+            document.getElementById('role').value = role;
+        }
+
+        function limparFormularioUser() {
+            document.getElementById('userId').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('role').value = '';
+        }
+
+        async function guardarUtilizador() {
+            const id = document.getElementById('userId').value;
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('role').value;
+
+            if (!username || !email || !password || !role) {
+                alert('Preenche todos os campos.');
+                return;
+            }
+
+            const payload = {
+                username,
+                email,
+                password,
+                role,
+                online: false
+            };
+
+            const url = id ? `/api/users/${id}` : '/api/users';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const resposta = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (resposta.ok) {
+                    alert(id ? 'Utilizador atualizado com sucesso.' : 'Utilizador criado com sucesso.');
+                    limparFormularioUser();
+                    carregarUtilizadores();
+                } else {
+                    const erroTexto = await resposta.text();
+                    alert('Erro ao guardar utilizador: ' + erroTexto);
+                }
+            } catch (erro) {
+                console.error('Erro ao guardar utilizador:', erro);
+                alert('Erro de ligação ao servidor.');
+            }
+        }
+
+        async function apagarUtilizador(id) {
+            const confirmar = confirm('Tens a certeza que queres apagar este utilizador?');
+            if (!confirmar) return;
+
+            try {
+                const resposta = await fetch(`/api/users/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (resposta.ok) {
+                    alert('Utilizador apagado com sucesso.');
+                    carregarUtilizadores();
+                } else {
+                    alert('Erro ao apagar utilizador.');
+                }
+            } catch (erro) {
+                console.error('Erro ao apagar utilizador:', erro);
+                alert('Erro de ligação ao servidor.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', verificarAcessoAdminPage);
+    </script>
+</body>
+</html>

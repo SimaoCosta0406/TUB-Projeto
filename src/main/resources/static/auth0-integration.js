@@ -44,7 +44,16 @@ async function processarLogin() {
         
         // Extrair role do token
         const roles = user['https://api.tub.pt/roles'] || [];
-        const role = roles.includes('ADMIN') ? 'ADMIN' : 'USER';
+
+        // Determinar role (prioridade: ADMIN > SUPERVISOR > WORKER > USER)
+        let role = 'USER'; // default
+            if (roles.includes('ADMIN')) {
+                 role = 'ADMIN';
+            } else if (roles.includes('SUPERVISOR')) {
+                 role = 'SUPERVISOR';
+            } else if (roles.includes('WORKER')) {
+                 role = 'WORKER';
+}
         
         // Criar objeto utilizador compatível com sistema existente
         const utilizador = {
@@ -61,10 +70,15 @@ async function processarLogin() {
         
         // Redirecionar conforme role
         if (role === 'ADMIN') {
-            window.location.href = 'mapa.html'; // Admin vê tudo
+            window.location.href = 'mapa.html'; // ADMIN vê tudo (incluindo menu ALARMES)
+        } else if (role === 'SUPERVISOR') {
+            window.location.href = 'supervisor.html'; // SUPERVISOR só vê alarmes
+        } else if (role === 'WORKER') {
+            window.location.href = 'worker.html'; // WORKER envia alarmes
         } else {
-            window.location.href = 'mapa.html'; // User vê mapa
+            window.location.href = 'mapa.html'; // USER vê mapa
         }
+
     } catch (erro) {
         console.error('Erro ao processar login:', erro);
         const erroMsg = document.getElementById('erro-msg');

@@ -9,16 +9,16 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
-                <img src="transferir.png" class="logo" alt="Logo TUB">
-            </a>
+            <img src="transferir.png" class="logo" alt="Logo TUB">
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
 
                 <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-admin-users" style="display:none;">
+                    <a href="admin-users.html">Utilizadores</a>
+                </li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
-                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
@@ -142,7 +142,7 @@
                     const row = document.createElement('tr');
 
                     const statusClass = route.status === 'ACTIVE' ? 'status-active' :
-                                      route.status === 'INACTIVE' ? 'status-inactive' : 'status-maintenance';
+                                    route.status === 'INACTIVE' ? 'status-inactive' : 'status-maintenance';
 
                     const stopsText = route.stops && route.stops.length > 0 ?
                         route.stops.slice(0, 3).join(', ') + (route.stops.length > 3 ? '...' : '') : '-';
