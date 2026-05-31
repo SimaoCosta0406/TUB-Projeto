@@ -76,8 +76,9 @@ public class PassengerController {
     @PostMapping("/simulate/entry")
     public ResponseEntity<PassengerCount> simulateEntry(
             @RequestParam Long panelId,
+            @RequestParam(required = false) String line,
             @RequestParam(defaultValue = "1") int count) {
-        PassengerCount record = passengerService.simulateEntry(panelId, count);
+        PassengerCount record = passengerService.simulateEntry(panelId, line, count);
         return ResponseEntity.ok(record);
     }
 
@@ -85,8 +86,9 @@ public class PassengerController {
     @PostMapping("/simulate/exit")
     public ResponseEntity<PassengerCount> simulateExit(
             @RequestParam Long panelId,
+            @RequestParam(required = false) String line,
             @RequestParam(defaultValue = "1") int count) {
-        PassengerCount record = passengerService.simulateExit(panelId, count);
+        PassengerCount record = passengerService.simulateExit(panelId, line, count);
         return ResponseEntity.ok(record);
     }
 

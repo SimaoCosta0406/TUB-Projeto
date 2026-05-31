@@ -98,6 +98,35 @@ public class PassengerService {
         return result;
     }
 
+    public Map<String, Object> getCurrentCountForLine(String line) {
+        String normalizedLine = normalizeLine(line);
+        int totalEntries = 0;
+        int totalExits = 0;
+        LocalDateTime latestTimestamp = null;
+
+        for (PassengerCount count : repository.findAll()) {
+            if (!normalizedLine.equals(normalizeLine(count.getLine()))) {
+                continue;
+            }
+
+            totalEntries += count.getEntryCount();
+            totalExits += count.getExitCount();
+
+            if (isAfter(count.getTimestamp(), latestTimestamp)) {
+                latestTimestamp = count.getTimestamp();
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("line", line);
+        result.put("totalEntries", totalEntries);
+        result.put("totalExits", totalExits);
+        result.put("currentOccupancy", clampOccupancy(totalEntries - totalExits));
+        result.put("maxOccupancy", MAX_BUS_OCCUPANCY);
+        result.put("latestTimestamp", latestTimestamp);
+        return result;
+    }
+
     public Map<Long, Map<String, Object>> getCurrentCountsPerPanel() {
         Map<Long, Map<String, Object>> currentCounts = new HashMap<>();
 
@@ -138,7 +167,11 @@ public class PassengerService {
     }
 
     public PassengerCount simulateEntry(Long panelId, int count) {
-        int currentOccupancy = (int) getCurrentCountForPanel(panelId).get("currentOccupancy");
+        return simulateEntry(panelId, null, count);
+    }
+
+    public PassengerCount simulateEntry(Long panelId, String line, int count) {
+        int currentOccupancy = getCurrentOccupancy(panelId, line);
         int allowedEntries = Math.min(Math.max(count, 0), MAX_BUS_OCCUPANCY - currentOccupancy);
 
         PassengerCount record = new PassengerCount();
@@ -146,12 +179,16 @@ public class PassengerService {
         record.setEntryCount(allowedEntries);
         record.setExitCount(0);
         record.setTimestamp(LocalDateTime.now());
-        record.setLine("Simulacao");
+        record.setLine((line == null || line.isBlank()) ? "Simulacao" : line);
         return repository.save(record);
     }
 
     public PassengerCount simulateExit(Long panelId, int count) {
-        int currentOccupancy = (int) getCurrentCountForPanel(panelId).get("currentOccupancy");
+        return simulateExit(panelId, null, count);
+    }
+
+    public PassengerCount simulateExit(Long panelId, String line, int count) {
+        int currentOccupancy = getCurrentOccupancy(panelId, line);
         int allowedExits = Math.min(Math.max(count, 0), currentOccupancy);
 
         PassengerCount record = new PassengerCount();
@@ -159,7 +196,7 @@ public class PassengerService {
         record.setEntryCount(0);
         record.setExitCount(allowedExits);
         record.setTimestamp(LocalDateTime.now());
-        record.setLine("Simulacao");
+        record.setLine((line == null || line.isBlank()) ? "Simulacao" : line);
         return repository.save(record);
     }
 
@@ -219,12 +256,32 @@ public class PassengerService {
             return;
         }
 
-        int currentOccupancy = (int) getCurrentCountForPanel(data.getPanelId()).get("currentOccupancy");
+        int currentOccupancy = getCurrentOccupancy(data.getPanelId(), data.getLine());
         int allowedEntries = Math.min(data.getEntryCount(), MAX_BUS_OCCUPANCY - currentOccupancy);
         int occupancyAfterEntries = currentOccupancy + allowedEntries;
         int allowedExits = Math.min(data.getExitCount(), occupancyAfterEntries);
 
         data.setEntryCount(allowedEntries);
         data.setExitCount(allowedExits);
+    }
+
+    private int getCurrentOccupancy(Long panelId, String line) {
+        if (line != null && !line.isBlank()) {
+            return (int) getCurrentCountForLine(line).get("currentOccupancy");
+        }
+        return (int) getCurrentCountForPanel(panelId).get("currentOccupancy");
+    }
+
+    private String normalizeLine(String line) {
+        if (line == null) {
+            return "";
+        }
+        String normalized = line.trim().toLowerCase()
+                .replace("linha", "")
+                .replaceAll("[^a-z0-9]", "");
+        if (normalized.matches("\\d+")) {
+            return String.valueOf(Integer.parseInt(normalized));
+        }
+        return normalized;
     }
 }

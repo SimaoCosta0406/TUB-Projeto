@@ -342,37 +342,36 @@
         function renderPainelData(data) {
             document.getElementById('stop-name').textContent = data.stopName || '--';
 
-            const passengerCounts = data.passengerCounts || {};
-            const currentOccupancy = Math.max(0, Math.min(MAX_OCCUPANCY, Number(passengerCounts.currentOccupancy || 0)));
-            const occupancyPercentage = Math.round((currentOccupancy / MAX_OCCUPANCY) * 100);
-
-            const arrivals = (data.arrivals || []).slice(0, 1);
+            const arrivals = data.arrivals || [];
             const container = document.getElementById('arrivals-container');
 
             if (arrivals.length === 0) {
-                const assignedRoute = data.assignedRoute || {};
-                container.innerHTML = renderPlaceholderRow(currentOccupancy, occupancyPercentage, {
-                    routeCode: assignedRoute.code || '--',
-                    destination: assignedRoute.destination || '--',
-                    routeName: buildRouteName(assignedRoute),
+                container.innerHTML = renderPlaceholderRow(0, 0, {
+                    routeCode: '--',
+                    destination: 'Sem previsao',
+                    routeName: 'Nenhum autocarro nos proximos 15 min',
                     etaText: '--'
                 });
-                document.getElementById('panel-route-summary').textContent = assignedRoute.code ? 'Rota atribuida' : 'Sem rota atribuida';
+                document.getElementById('panel-route-summary').textContent = 'Sem autocarros nos proximos 15 min';
                 return;
             }
 
             container.innerHTML = '';
-            document.getElementById('panel-route-summary').textContent = arrivals[0].source === 'assignedRoute' ? 'Rota atribuida' : 'Proxima chegada';
+            document.getElementById('panel-route-summary').textContent = arrivals.length === 1 ? '1 rota nesta paragem' : `${arrivals.length} rotas nesta paragem`;
 
             arrivals.forEach((arrival, index) => {
                 const row = document.createElement('div');
                 row.className = 'arrivals-row';
                 row.style.animationDelay = `${index * 0.05}s`;
 
-                const etaText = arrival.etaMinutes !== undefined ? `${arrival.etaMinutes} min` : '--';
-                const etaClass = arrival.etaMinutes <= 2 ? 'blink' : '';
+                const etaText = arrival.etaMinutes != null ? `${arrival.etaMinutes} min` : '--';
+                const etaClass = arrival.etaMinutes != null && arrival.etaMinutes <= 2 ? 'blink' : '';
                 const destination = arrival.routeDestination || arrival.routeDescription || arrival.routeName || 'Destino Desconhecido';
                 const routeName = arrival.routeName || arrival.arrivalTime || 'Rota TUB';
+                const passengerCounts = arrival.passengerCounts || {};
+                const maxOccupancy = Number(passengerCounts.maxOccupancy || arrival.capacity || MAX_OCCUPANCY);
+                const currentOccupancy = Math.max(0, Math.min(maxOccupancy, Number(passengerCounts.currentOccupancy || arrival.currentOccupancy || 0)));
+                const occupancyPercentage = Math.round((currentOccupancy / maxOccupancy) * 100);
 
                 row.innerHTML = renderRow(
                     arrival.routeCode || '--',
@@ -381,13 +380,14 @@
                     etaText,
                     etaClass,
                     currentOccupancy,
-                    occupancyPercentage
+                    occupancyPercentage,
+                    maxOccupancy
                 );
                 container.appendChild(row);
             });
         }
 
-        function renderRow(routeCode, destination, routeName, etaText, etaClass, currentOccupancy, occupancyPercentage) {
+        function renderRow(routeCode, destination, routeName, etaText, etaClass, currentOccupancy, occupancyPercentage, maxOccupancy = MAX_OCCUPANCY) {
             const occupancyClass = occupancyPercentage >= 85 ? 'high' : occupancyPercentage >= 60 ? 'medium' : '';
             return `
                 <div class="route-code">${routeCode}</div>
@@ -396,7 +396,7 @@
                     <div class="route-name">${routeName}</div>
                 </div>
                 <div class="eta ${etaClass}">${etaText}</div>
-                <div class="passenger-count">${currentOccupancy}/${MAX_OCCUPANCY}</div>
+                <div class="passenger-count">${currentOccupancy}/${maxOccupancy}</div>
                 <div class="occupancy-percent">
                     ${occupancyPercentage}%
                     <div class="occupancy-meter">
