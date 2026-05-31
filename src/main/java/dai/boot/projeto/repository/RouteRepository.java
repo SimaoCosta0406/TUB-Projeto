@@ -14,4 +14,5 @@ public interface RouteRepository extends JpaRepository<Route, Long> {
     List<Route> findByStatus(String status);
     List<Route> findByOriginContainingIgnoreCase(String originPart);
     List<Route> findByDestinationContainingIgnoreCase(String destinationPart);
+    long countByStatus(String status);
 }

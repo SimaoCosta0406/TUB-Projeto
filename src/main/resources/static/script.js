@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const painelIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
             shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-            iconSize: [35, 55],
-            iconAnchor: [17, 55],
+            iconSize: [18, 25],
+            iconAnchor: [9, 25],
             popupAnchor: [1, -45],
             shadowSize: [55, 55]
         });

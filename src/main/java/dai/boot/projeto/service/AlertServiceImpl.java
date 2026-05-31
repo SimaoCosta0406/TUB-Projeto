@@ -62,6 +62,7 @@ public class AlertServiceImpl implements AlertService {
 
         alert.setStatus("ACCEPTED");
         alert.setAcceptedBy(supervisorUsername);
+        alert.setAcceptedAt(LocalDateTime.now());
         alert.setInconsistentReason(null); // limpa motivo anterior se existia
         return alertRepository.save(alert);
     }
@@ -163,9 +164,11 @@ public class AlertServiceImpl implements AlertService {
         alert.setRecommendedActions(recommendedActionsJson);
         if ("ACCEPTED".equalsIgnoreCase(newStatus)) {
             alert.setAcceptedBy(supervisorUsername);
+            alert.setAcceptedAt(LocalDateTime.now());
             alert.setInconsistentReason(null);
         } else if ("PENDING".equalsIgnoreCase(newStatus)) {
             alert.setAcceptedBy(null);
+            alert.setAcceptedAt(null);
         }
         return alertRepository.save(alert);
     }
@@ -175,5 +178,82 @@ public class AlertServiceImpl implements AlertService {
         return alertRepository.findAll().stream()
                 .filter(a -> "ACCEPTED".equals(a.getStatus()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> getOperationalStats() {
+        List<Alert> allAlerts = alertRepository.findAll();
+        Map<String, Object> stats = new java.util.HashMap<>();
+
+        // 1. Contagem por status
+        Map<String, Long> countByStatus = new java.util.HashMap<>();
+        countByStatus.put("ACTIVE", allAlerts.stream().filter(a -> "ACTIVE".equals(a.getStatus())).count());
+        countByStatus.put("PENDING", allAlerts.stream().filter(a -> "PENDING".equals(a.getStatus())).count());
+        countByStatus.put("ACCEPTED", allAlerts.stream().filter(a -> "ACCEPTED".equals(a.getStatus())).count());
+        countByStatus.put("RESOLVED", allAlerts.stream().filter(a -> "RESOLVED".equals(a.getStatus())).count());
+        stats.put("countByStatus", countByStatus);
+
+        // 2. Tempo médio de resposta (ACTIVE/PENDING → ACCEPTED)
+        double avgResponseTime = allAlerts.stream()
+                .filter(a -> a.getAcceptedBy() != null && a.getCreatedAt() != null)
+                .mapToLong(a -> {
+                    java.time.Duration duration = java.time.Duration.between(a.getCreatedAt(), 
+                        a.getAcceptedAt() != null ? a.getAcceptedAt() : LocalDateTime.now());
+                    return duration.getSeconds();
+                })
+                .average()
+                .orElse(0.0);
+        stats.put("avgResponseTimeSeconds", (long) avgResponseTime);
+
+        // 3. Tempo médio de resolução (ACCEPTED → RESOLVED)
+        double avgResolutionTime = allAlerts.stream()
+                .filter(a -> "RESOLVED".equals(a.getStatus()) && a.getAcceptedAt() != null && a.getResolvedAt() != null)
+                .mapToLong(a -> {
+                    java.time.Duration duration = java.time.Duration.between(a.getAcceptedAt(), a.getResolvedAt());
+                    return duration.getSeconds();
+                })
+                .average()
+                .orElse(0.0);
+        stats.put("avgResolutionTimeSeconds", (long) avgResolutionTime);
+
+        // 4. Taxa de inconsistência
+        long totalAlerts = allAlerts.size();
+        long inconsistentCount = allAlerts.stream()
+                .filter(a -> a.getInconsistentReason() != null && !a.getInconsistentReason().isEmpty())
+                .count();
+        double inconsistencyRate = totalAlerts > 0 ? (double) inconsistentCount / totalAlerts * 100 : 0;
+        stats.put("inconsistencyRate", String.format("%.2f%%", inconsistencyRate));
+        stats.put("inconsistentCount", inconsistentCount);
+
+        // 5. Alertas por worker (criador)
+        Map<String, Long> alertsByWorker = allAlerts.stream()
+                .filter(a -> a.getCreatedBy() != null)
+                .collect(Collectors.groupingBy(Alert::getCreatedBy, Collectors.counting()));
+        stats.put("alertsByWorker", alertsByWorker);
+
+        // 6. Alertas por tipo
+        Map<String, Long> alertsByType = allAlerts.stream()
+                .filter(a -> a.getType() != null)
+                .collect(Collectors.groupingBy(Alert::getType, Collectors.counting()));
+        stats.put("alertsByType", alertsByType);
+
+        // 7. Alertas por severidade
+        Map<String, Long> alertsBySeverity = allAlerts.stream()
+                .filter(a -> a.getSeverity() != null)
+                .collect(Collectors.groupingBy(Alert::getSeverity, Collectors.counting()));
+        stats.put("alertsBySeverity", alertsBySeverity);
+
+        // 8. Taxa de resolução (resolvidos vs total)
+        long resolvedCount = allAlerts.stream().filter(a -> "RESOLVED".equals(a.getStatus())).count();
+        double resolutionRate = totalAlerts > 0 ? (double) resolvedCount / totalAlerts * 100 : 0;
+        stats.put("resolutionRate", String.format("%.2f%%", resolutionRate));
+
+        // 9. Supervisores que aceitaram (desempenho)
+        Map<String, Long> alertsBySupervisor = allAlerts.stream()
+                .filter(a -> a.getAcceptedBy() != null)
+                .collect(Collectors.groupingBy(Alert::getAcceptedBy, Collectors.counting()));
+        stats.put("alertsBySupervisor", alertsBySupervisor);
+
+        return stats;
     }
 }

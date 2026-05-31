@@ -19,7 +19,18 @@
         </div>
     </nav>
 
-    <section class="admin-only" style="padding-top: 5rem;">
+    <!-- Abas de navegação -->
+    <section style="padding: 2rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); background: var(--navy-light);">
+        <div class="container">
+            <div style="display: flex; gap: 2rem; justify-content: flex-start;">
+                <button onclick="abaAtiva('alarmes')" id="tab-alarmes" style="background: transparent; border: none; color: var(--amber); font-weight: 700; padding: 0.5rem 1rem; cursor: pointer; border-bottom: 3px solid var(--amber); font-size: 0.95rem;">🔔 Gestão de Alarmes</button>
+                <button onclick="abaAtiva('desempenho')" id="tab-desempenho" style="background: transparent; border: none; color: var(--muted); font-weight: 700; padding: 0.5rem 1rem; cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.95rem;">📊 Desempenho Operacional</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secção de Alarmes -->
+    <section id="secao-alarmes" class="admin-only" style="padding-top: 2rem;">
         <div class="card-full">
             <h2>Gestão de Alarmes</h2>
 
@@ -50,12 +61,240 @@
         </div>
     </section>
 
+    <!-- Secção de Desempenho Operacional -->
+    <section id="secao-desempenho" style="display: none; padding-top: 2rem;">
+        <div class="container">
+            <!-- KPIs -->
+            <div class="card-full">
+                <h2>📊 Indicadores de Desempenho</h2>
+                <div class="stats-container">
+                    <div class="stat-card high">
+                        <span style="font-size: 0.8rem; color: var(--muted);">Tempo Médio Resposta</span>
+                        <span id="kpi-response-time" style="font-size: 1.5rem; font-weight: 700;">-</span>
+                    </div>
+                    <div class="stat-card medium">
+                        <span style="font-size: 0.8rem; color: var(--muted);">Tempo Médio Resolução</span>
+                        <span id="kpi-resolution-time" style="font-size: 1.5rem; font-weight: 700;">-</span>
+                    </div>
+                    <div class="stat-card low">
+                        <span style="font-size: 0.8rem; color: var(--muted);">Taxa de Resolução</span>
+                        <span id="kpi-resolution-rate" style="font-size: 1.5rem; font-weight: 700;">-</span>
+                    </div>
+                    <div class="stat-card high">
+                        <span style="font-size: 0.8rem; color: var(--muted);">Taxa Inconsistência</span>
+                        <span id="kpi-inconsistency-rate" style="font-size: 1.5rem; font-weight: 700;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status dos Alarmes -->
+            <div class="card-full" style="margin-top: 2rem;">
+                <h3>Estado dos Alarmes</h3>
+                <div id="desempenho-status" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Carregado dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Performance por Worker -->
+            <div class="card-full" style="margin-top: 2rem;">
+                <h3>👷 Alertas por Trabalhador</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--navy-light); border-bottom: 2px solid rgba(245,166,35,0.2);">
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 700; color: var(--amber);">Trabalhador</th>
+                            <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--amber);">Alertas Criados</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desempenho-workers">
+                        <tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">A carregar...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Alertas por Tipo -->
+            <div class="card-full" style="margin-top: 2rem;">
+                <h3>📌 Distribuição por Tipo</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--navy-light); border-bottom: 2px solid rgba(245,166,35,0.2);">
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 700; color: var(--amber);">Tipo</th>
+                            <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--amber);">Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desempenho-tipos">
+                        <tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">A carregar...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Performance por Supervisor -->
+            <div class="card-full" style="margin-top: 2rem;">
+                <h3>👨‍💼 Alertas Aceites por Supervisor</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--navy-light); border-bottom: 2px solid rgba(245,166,35,0.2);">
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 700; color: var(--amber);">Supervisor</th>
+                            <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--amber);">Alertas Aceites</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desempenho-supervisores">
+                        <tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">A carregar...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>
 
     <script src="script.js"></script>
     <script>
+        // Variáveis globais
+        let abaAtualTab = 'alarmes';
+
+        // Alternar entre abas
+        function abaAtiva(aba) {
+            abaAtualTab = aba;
+            
+            // Esconder todas as secções
+            document.getElementById('secao-alarmes').style.display = 'none';
+            document.getElementById('secao-desempenho').style.display = 'none';
+            
+            // Desativar todos os tabs
+            document.getElementById('tab-alarmes').style.color = 'var(--muted)';
+            document.getElementById('tab-alarmes').style.borderBottomColor = 'transparent';
+            document.getElementById('tab-desempenho').style.color = 'var(--muted)';
+            document.getElementById('tab-desempenho').style.borderBottomColor = 'transparent';
+            
+            // Ativar aba selecionada
+            if (aba === 'alarmes') {
+                document.getElementById('secao-alarmes').style.display = 'block';
+                document.getElementById('tab-alarmes').style.color = 'var(--amber)';
+                document.getElementById('tab-alarmes').style.borderBottomColor = 'var(--amber)';
+                carregarAlarmesParaSupervisor();
+            } else if (aba === 'desempenho') {
+                document.getElementById('secao-desempenho').style.display = 'block';
+                document.getElementById('tab-desempenho').style.color = 'var(--amber)';
+                document.getElementById('tab-desempenho').style.borderBottomColor = 'var(--amber)';
+                carregarDesempenhoOperacional();
+            }
+        }
+
+        // Carregar estatísticas operacionais
+        async function carregarDesempenhoOperacional() {
+            try {
+                const res = await fetch('/api/alerts/stats/operational');
+                if (!res.ok) throw new Error('Erro ao carregar estatísticas');
+                
+                const stats = await res.json();
+                exibirDesempenho(stats);
+            } catch (err) {
+                console.error('Erro ao carregar desempenho:', err);
+                document.getElementById('desempenho-status').innerHTML = `<p style="color: var(--danger);">Erro ao carregar estatísticas</p>`;
+            }
+        }
+
+        // Exibir dados de desempenho
+        function exibirDesempenho(stats) {
+            // KPIs
+            document.getElementById('kpi-response-time').textContent = formatarTempoSegundos(stats.avgResponseTimeSeconds || 0);
+            document.getElementById('kpi-resolution-time').textContent = formatarTempoSegundos(stats.avgResolutionTimeSeconds || 0);
+            document.getElementById('kpi-resolution-rate').textContent = stats.resolutionRate || '0%';
+            document.getElementById('kpi-inconsistency-rate').textContent = stats.inconsistencyRate || '0%';
+
+            // Status dos alarmes
+            const statusDiv = document.getElementById('desempenho-status');
+            statusDiv.innerHTML = '';
+            const countByStatus = stats.countByStatus || {};
+            
+            const statusLabels = {
+                'ACTIVE': { label: '🔴 Ativos', color: 'high' },
+                'PENDING': { label: '🟡 Devolvidos', color: 'medium' },
+                'ACCEPTED': { label: '🟠 Aceites', color: 'medium' },
+                'RESOLVED': { label: '✅ Resolvidos', color: 'low' }
+            };
+
+            Object.entries(countByStatus).forEach(([status, count]) => {
+                const info = statusLabels[status] || { label: status, color: 'low' };
+                statusDiv.innerHTML += `
+                    <div class="stat-card ${info.color}" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">${info.label}</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--white);">${count}</div>
+                    </div>
+                `;
+            });
+
+            // Workers
+            const workersDiv = document.getElementById('desempenho-workers');
+            workersDiv.innerHTML = '';
+            const alertsByWorker = stats.alertsByWorker || {};
+            
+            if (Object.keys(alertsByWorker).length === 0) {
+                workersDiv.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">Sem dados disponíveis</td></tr>';
+            } else {
+                Object.entries(alertsByWorker)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([worker, count]) => {
+                        workersDiv.innerHTML += `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.75rem; color: var(--white);">${worker}</td>
+                                <td style="padding: 0.75rem; text-align: center; color: var(--amber); font-weight: 700;">${count}</td>
+                            </tr>
+                        `;
+                    });
+            }
+
+            // Tipos
+            const tiposDiv = document.getElementById('desempenho-tipos');
+            tiposDiv.innerHTML = '';
+            const alertsByType = stats.alertsByType || {};
+            
+            if (Object.keys(alertsByType).length === 0) {
+                tiposDiv.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">Sem dados disponíveis</td></tr>';
+            } else {
+                Object.entries(alertsByType)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([tipo, count]) => {
+                        tiposDiv.innerHTML += `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.75rem; color: var(--white);">${tipo}</td>
+                                <td style="padding: 0.75rem; text-align: center; color: var(--amber); font-weight: 700;">${count}</td>
+                            </tr>
+                        `;
+                    });
+            }
+
+            // Supervisores
+            const supDiv = document.getElementById('desempenho-supervisores');
+            supDiv.innerHTML = '';
+            const alertsBySupervisor = stats.alertsBySupervisor || {};
+            
+            if (Object.keys(alertsBySupervisor).length === 0) {
+                supDiv.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--muted);">Sem dados disponíveis</td></tr>';
+            } else {
+                Object.entries(alertsBySupervisor)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([supervisor, count]) => {
+                        supDiv.innerHTML += `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.75rem; color: var(--white);">${supervisor}</td>
+                                <td style="padding: 0.75rem; text-align: center; color: var(--amber); font-weight: 700;">${count}</td>
+                            </tr>
+                        `;
+                    });
+            }
+        }
+
+        // Formatar segundos em minutos/horas
+        function formatarTempoSegundos(segundos) {
+            if (segundos === 0) return '-';
+            if (segundos < 60) return Math.round(segundos) + 's';
+            if (segundos < 3600) return Math.round(segundos / 60) + 'm';
+            return Math.round(segundos / 3600) + 'h';
+        }
+
         // Proteger a página — só supervisores podem aceder
         document.addEventListener("DOMContentLoaded", function () {
             const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
@@ -69,9 +308,15 @@
                 return;
             }
             // Carregar alarmes ao entrar
-            carregarAlarmesParaSupervisor();
+            abaAtiva('alarmes');
             // Atualizar a cada 10 segundos
-            setInterval(carregarAlarmesParaSupervisor, 10000);
+            setInterval(function() {
+                if (abaAtualTab === 'alarmes') {
+                    carregarAlarmesParaSupervisor();
+                } else {
+                    carregarDesempenhoOperacional();
+                }
+            }, 10000);
         });
     </script>
 </body>

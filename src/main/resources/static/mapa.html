@@ -17,6 +17,7 @@
                 <li id="nav-admin-users" style="display:none;">
                     <a href="admin-users.html">Utilizadores</a>
                 </li>
+                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
@@ -130,7 +131,7 @@
             }
 
             container.innerHTML = rotas.map(rota => `
-                <div class="route-item" onclick="selecionarRota(${rota.id}, '${rota.code}', '${rota.origin}', '${rota.destination}')">
+                <div class="route-item" data-route-id="${rota.id}" data-route-code="${rota.code}" data-route-origin="${rota.origin}" data-route-destination="${rota.destination}">
                     <div class="route-number">${rota.code}</div>
                     <div class="route-info">
                         <p class="route-path">${rota.origin} → ${rota.destination}</p>
@@ -139,6 +140,17 @@
                     <div class="route-arrow">→</div>
                 </div>
             `).join('');
+
+            // Adicionar event listeners aos elementos de rotas
+            container.querySelectorAll('.route-item').forEach(element => {
+                element.addEventListener('click', function() {
+                    const rotaId = parseInt(this.getAttribute('data-route-id'));
+                    const codigo = this.getAttribute('data-route-code');
+                    const origem = this.getAttribute('data-route-origin');
+                    const destino = this.getAttribute('data-route-destination');
+                    selecionarRota(rotaId, codigo, origem, destino);
+                });
+            });
         }
 
         // Filtrar rotas

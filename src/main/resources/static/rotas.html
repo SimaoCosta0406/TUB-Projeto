@@ -17,6 +17,7 @@
                 <li id="nav-admin-users" style="display:none;">
                     <a href="admin-users.html">Utilizadores</a>
                 </li>
+                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
@@ -68,7 +69,6 @@
             <table id="table-routes">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Código</th>
                         <th>Origem</th>
                         <th>Destino</th>
@@ -148,7 +148,6 @@
                         route.stops.slice(0, 3).join(', ') + (route.stops.length > 3 ? '...' : '') : '-';
 
                     row.innerHTML = `
-                        <td>${route.id}</td>
                         <td>${route.code}</td>
                         <td>${route.origin || '-'}</td>
                         <td>${route.destination || '-'}</td>

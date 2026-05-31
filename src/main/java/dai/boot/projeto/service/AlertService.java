@@ -33,6 +33,9 @@ public interface AlertService {
 
     Map<String, Long> getSeverityStats();
 
+    // Estatísticas operacionais para desempenho
+    Map<String, Object> getOperationalStats();
+
     // Retorna as opções disponíveis para criar um alerta
     Map<String, Object> getAlertOptions();
 
