@@ -189,6 +189,20 @@
         .occupancy-fill.medium { background: #ffc107; }
         .occupancy-fill.high { background: #ff5252; }
 
+        .arrivals-row.placeholder {
+            grid-template-columns: 95px 1fr;
+        }
+
+        .arrivals-row.placeholder .placeholder-message {
+            color: #ff9800;
+            font-size: 2.08rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(255,152,0,0.45);
+        }
+
         .panel-footer {
             display: flex;
             justify-content: space-between;
@@ -408,8 +422,12 @@
 
         function renderPlaceholderRow(currentOccupancy, occupancyPercentage, info) {
             return `
-                <div class="arrivals-row">
-                    ${renderRow(info.routeCode, info.destination, info.routeName, info.etaText, '', currentOccupancy, occupancyPercentage)}
+                <div class="arrivals-row placeholder">
+                    <div class="route-code">${info.routeCode}</div>
+                    <div>
+                        <div class="placeholder-message">${String(info.destination).toUpperCase()}</div>
+                        <div class="route-name">${info.routeName}</div>
+                    </div>
                 </div>
             `;
         }

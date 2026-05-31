@@ -183,6 +183,19 @@ public class PassengerService {
         return repository.save(record);
     }
 
+    public PassengerCount simulateEntryForLine(String line, int count) {
+        int currentOccupancy = (int) getCurrentCountForLine(line).get("currentOccupancy");
+        int allowedEntries = Math.min(Math.max(count, 0), MAX_BUS_OCCUPANCY - currentOccupancy);
+
+        PassengerCount record = new PassengerCount();
+        record.setPanelId(null);
+        record.setEntryCount(allowedEntries);
+        record.setExitCount(0);
+        record.setTimestamp(LocalDateTime.now());
+        record.setLine(line);
+        return repository.save(record);
+    }
+
     public PassengerCount simulateExit(Long panelId, int count) {
         return simulateExit(panelId, null, count);
     }
@@ -197,6 +210,19 @@ public class PassengerService {
         record.setExitCount(allowedExits);
         record.setTimestamp(LocalDateTime.now());
         record.setLine((line == null || line.isBlank()) ? "Simulacao" : line);
+        return repository.save(record);
+    }
+
+    public PassengerCount simulateExitForLine(String line, int count) {
+        int currentOccupancy = (int) getCurrentCountForLine(line).get("currentOccupancy");
+        int allowedExits = Math.min(Math.max(count, 0), currentOccupancy);
+
+        PassengerCount record = new PassengerCount();
+        record.setPanelId(null);
+        record.setEntryCount(0);
+        record.setExitCount(allowedExits);
+        record.setTimestamp(LocalDateTime.now());
+        record.setLine(line);
         return repository.save(record);
     }
 

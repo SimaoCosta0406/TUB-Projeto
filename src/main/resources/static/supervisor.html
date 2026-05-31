@@ -59,8 +59,11 @@
                 </tbody>
             </table>
         </div>
-    </section>
+        <section class="admin-only" style="padding-top: 2rem;">
+            <div class="card-full">
+                <h2>Relatórios Manuais</h2>
 
+<<<<<<< HEAD
     <!-- Secção de Desempenho Operacional -->
     <section id="secao-desempenho" style="display: none; padding-top: 2rem;">
         <div class="container">
@@ -145,6 +148,99 @@
         </div>
     </section>
 
+=======
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
+                    <select id="reportType">
+                        <option value="vehicles">Relatório de Veículos</option>
+                        <option value="routes">Relatório de Rotas</option>
+                        <option value="passengers">Relatório de Passageiros</option>
+                    </select>
+
+                    <input type="datetime-local" id="reportFrom">
+                    <input type="datetime-local" id="reportTo">
+                    <input type="number" id="reportPanelId" placeholder="Panel ID (só passageiros)">
+                </div>
+
+                <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="gerarRelatorioManual()">Gerar Relatório</button>
+                    <button onclick="exportarRelatorioCSV()">Exportar CSV</button>
+                </div>
+
+                <div id="reportSummary" style="margin-bottom: 1rem; color: var(--white);"></div>
+
+                <table id="table-reports">
+                    <thead id="reports-head"></thead>
+                    <tbody id="reports-body">
+                        <tr>
+                            <td style="text-align:center; color:var(--muted); padding:2rem;">
+                                Nenhum relatório gerado ainda.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+    </section>
+    <section class="admin-only" style="padding-top: 2rem;">
+        <div class="card-full">
+            <h2>Relatórios Automáticos</h2>
+
+            <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="gerarRelatorioAutomatico()">Gerar Relatório Automático</button>
+                <button onclick="carregarRelatoriosAutomaticos()">Atualizar Lista</button>
+            </div>
+
+            <table id="table-auto-reports">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Gerado em</th>
+                        <th>Automático</th>
+                        <th>Conteúdo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="auto-reports-body">
+                    <tr>
+                        <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
+                            A carregar relatórios automáticos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="admin-only" style="padding-top: 2rem;">
+        <div class="card-full">
+            <h2>Consultar Histórico</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
+                <input type="number" id="historyPanelId" placeholder="Panel ID">
+                <input type="datetime-local" id="historyFrom">
+                <input type="datetime-local" id="historyTo">
+            </div>
+
+            <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="consultarHistoricoPassageiros()">Consultar Histórico</button>
+            </div>
+
+            <div id="historySummary" style="margin-bottom: 1rem; color: var(--white);"></div>
+
+            <table id="table-history">
+                <thead id="history-head"></thead>
+                <tbody id="history-body">
+                    <tr>
+                        <td style="text-align:center; color:var(--muted); padding:2rem;">
+                            Nenhuma consulta de histórico realizada ainda.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+>>>>>>> 93e8d41f0c5699a4965995ae9cc901a0ce763e53
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>
@@ -310,6 +406,7 @@
             // Carregar alarmes ao entrar
             abaAtiva('alarmes');
             // Atualizar a cada 10 segundos
+<<<<<<< HEAD
             setInterval(function() {
                 if (abaAtualTab === 'alarmes') {
                     carregarAlarmesParaSupervisor();
@@ -317,7 +414,357 @@
                     carregarDesempenhoOperacional();
                 }
             }, 10000);
+=======
+            carregarRelatoriosAutomaticos();
+            setInterval(carregarAlarmesParaSupervisor, 10000);
+>>>>>>> 93e8d41f0c5699a4965995ae9cc901a0ce763e53
         });
+        async function gerarRelatorioManual() {
+            const tipo = document.getElementById('reportType').value;
+            const from = document.getElementById('reportFrom').value;
+            const to = document.getElementById('reportTo').value;
+            const panelId = document.getElementById('reportPanelId').value;
+
+            let url = '';
+
+            if (tipo === 'vehicles') {
+                url = '/api/reports/vehicles';
+            } else if (tipo === 'routes') {
+                url = '/api/reports/routes';
+            } else if (tipo === 'passengers') {
+                if (!panelId || !from || !to) {
+                    alert('Para o relatório de passageiros tens de indicar panelId, data inicial e data final.');
+                    return;
+                }
+                url = `/api/reports/passengers?panelId=${panelId}&from=${from}:00&to=${to}:00`;
+            }
+
+            try {
+                const resposta = await fetch(url);
+                if (!resposta.ok) {
+                    const erro = await resposta.text();
+                    alert('Erro ao gerar relatório: ' + erro);
+                    return;
+                }
+
+                const dados = await resposta.json();
+                mostrarRelatorio(dados);
+            } catch (erro) {
+                console.error('Erro ao gerar relatório:', erro);
+                alert('Erro ao gerar relatório.');
+            }
+        }
+
+        function mostrarRelatorio(dados) {
+            const summary = document.getElementById('reportSummary');
+            const thead = document.getElementById('reports-head');
+            const tbody = document.getElementById('reports-body');
+
+            thead.innerHTML = '';
+                tbody.innerHTML = '';
+
+            if (dados.type === 'vehicles') {
+                summary.innerHTML = `
+                    <strong>Relatório de Veículos</strong><br>
+                    Total: ${dados.total} |
+                    Em serviço: ${dados.inService} |
+                    Fora de serviço: ${dados.outOfService} |
+                    Em manutenção: ${dados.maintenance}
+                `;
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>Matrícula</th>
+                        <th>Modelo</th>
+                        <th>Estado</th>
+                        <th>Capacidade</th>
+                    </tr>
+                `;
+
+                dados.items.forEach(v => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${v.id ?? ''}</td>
+                        <td>${v.plate ?? ''}</td>
+                        <td>${v.model ?? ''}</td>
+                        <td>${v.status ?? ''}</td>
+                        <td>${v.capacity ?? ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } else if (dados.type === 'routes') {
+                summary.innerHTML = `
+                    <strong>Relatório de Rotas</strong><br>
+                    Total: ${dados.total} |
+                    Ativas: ${dados.active} |
+                    Inativas: ${dados.inactive} |
+                    Manutenção: ${dados.maintenance}
+                `;
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Estado</th>
+                    </tr>
+                `;
+
+                dados.items.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${r.id ?? ''}</td>
+                        <td>${r.code ?? ''}</td>
+                        <td>${r.origin ?? ''}</td>
+                        <td>${r.destination ?? ''}</td>
+                        <td>${r.status ?? ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } else if (dados.type === 'passengers') {
+                summary.innerHTML = `
+                    <strong>Relatório de Passageiros</strong><br>
+                    Panel ID: ${dados.panelId} |
+                    Ocupação: ${dados.occupancy}
+                `;
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Entradas</th>
+                        <th>Saídas</th>
+                    </tr>
+                `;
+
+                dados.items.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td>${p.id ?? ''}</td>
+                        <td>${p.timestamp ?? ''}</td>
+                        <td>${p.entries ?? ''}</td>
+                        <td>${p.exits ?? ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            if (!tbody.innerHTML.trim()) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align:center; color:var(--muted); padding:2rem;">
+                            Sem resultados para este relatório.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function exportarRelatorioCSV() {
+            const thead = document.getElementById('reports-head');
+            const tbody = document.getElementById('reports-body');
+
+            if (!thead.innerText.trim() || !tbody.innerText.trim() || tbody.innerText.includes('Nenhum relatório gerado ainda')) {
+                alert('Primeiro gera um relatório antes de exportar.');
+                return;
+            }
+
+            let csv = '';
+
+            // Cabeçalhos
+            const headers = thead.querySelectorAll('th');
+            const headerRow = Array.from(headers).map(th => `"${th.innerText.replace(/"/g, '""')}"`).join(',');
+            csv += headerRow + '\n';
+
+            // Linhas
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                const rowData = Array.from(cols).map(td => `"${td.innerText.replace(/"/g, '""')}"`).join(',');
+                csv += rowData + '\n';
+            });
+
+            // Nome do ficheiro
+            const tipo = document.getElementById('reportType').value;
+            const data = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+            const nomeFicheiro = `relatorio-${tipo}-${data}.csv`;
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', nomeFicheiro);
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        async function gerarRelatorioAutomatico() {
+        try {
+            const resposta = await fetch('/api/generated-reports/generate');
+            if (!resposta.ok) {
+                const erro = await resposta.text();
+                alert('Erro ao gerar relatório automático: ' + erro);
+                return;
+            }
+
+            alert('Relatório automático gerado com sucesso.');
+            carregarRelatoriosAutomaticos();
+        } catch (erro) {
+            console.error('Erro ao gerar relatório automático:', erro);
+            alert('Erro ao gerar relatório automático.');
+        }
+    }
+
+    async function carregarRelatoriosAutomaticos() {
+        try {
+            const resposta = await fetch('/api/generated-reports');
+            if (!resposta.ok) {
+                const erro = await resposta.text();
+                alert('Erro ao carregar relatórios automáticos: ' + erro);
+                return;
+            }
+
+            const reports = await resposta.json();
+            const tbody = document.getElementById('auto-reports-body');
+            tbody.innerHTML = '';
+
+            if (!reports.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
+                            Ainda não existem relatórios automáticos.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            reports.forEach(report => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${report.id ?? ''}</td>
+                    <td>${report.reportType ?? ''}</td>
+                    <td>${report.generatedAt ?? ''}</td>
+                    <td>${report.generatedBySystem ? 'Sim' : 'Não'}</td>
+                    <td style="white-space: pre-wrap; max-width: 420px;">${report.content ?? ''}</td>
+                    <td>
+                        <button onclick="apagarRelatorioAutomatico(${report.id})" style="background:#e74c3c;">Apagar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (erro) {
+            console.error('Erro ao carregar relatórios automáticos:', erro);
+            alert('Erro ao carregar relatórios automáticos.');
+        }
+    }
+
+    async function apagarRelatorioAutomatico(id) {
+        const confirmar = confirm('Tens a certeza que queres apagar este relatório automático?');
+        if (!confirmar) return;
+
+        try {
+            const resposta = await fetch(`/api/generated-reports/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!resposta.ok) {
+                const erro = await resposta.text();
+                alert('Erro ao apagar relatório: ' + erro);
+                return;
+            }
+
+            alert('Relatório apagado com sucesso.');
+            carregarRelatoriosAutomaticos();
+        } catch (erro) {
+            console.error('Erro ao apagar relatório:', erro);
+            alert('Erro ao apagar relatório.');
+        }
+    }
+    async function consultarHistoricoPassageiros() {
+        const panelId = document.getElementById('historyPanelId').value;
+        const from = document.getElementById('historyFrom').value;
+        const to = document.getElementById('historyTo').value;
+
+        if (!panelId || !from || !to) {
+            alert('Tens de indicar panelId, data inicial e data final.');
+            return;
+        }
+
+        const url = `/api/reports/passengers?panelId=${panelId}&from=${from}:00&to=${to}:00`;
+
+        try {
+            const resposta = await fetch(url);
+            if (!resposta.ok) {
+                const erro = await resposta.text();
+                alert('Erro ao consultar histórico: ' + erro);
+                return;
+            }
+
+            const dados = await resposta.json();
+            mostrarHistoricoPassageiros(dados);
+        } catch (erro) {
+            console.error('Erro ao consultar histórico:', erro);
+            alert('Erro ao consultar histórico.');
+        }
+    }
+
+    function mostrarHistoricoPassageiros(dados) {
+        const summary = document.getElementById('historySummary');
+        const thead = document.getElementById('history-head');
+        const tbody = document.getElementById('history-body');
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        summary.innerHTML = `
+            <strong>Histórico de Passageiros</strong><br>
+            Panel ID: ${dados.panelId} |
+            Ocupação: ${dados.occupancy} |
+            De: ${dados.from} |
+            Até: ${dados.to}
+        `;
+
+        thead.innerHTML = `
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Entradas</th>
+                <th>Saídas</th>
+            </tr>
+        `;
+
+        if (!dados.items || !dados.items.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align:center; color:var(--muted); padding:2rem;">
+                        Sem resultados para este intervalo.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        dados.items.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.id ?? ''}</td>
+                <td>${item.timestamp ?? ''}</td>
+                <td>${item.entries ?? ''}</td>
+                <td>${item.exits ?? ''}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
     </script>
+    
 </body>
 </html>
