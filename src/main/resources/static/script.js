@@ -12,13 +12,10 @@ document.querySelectorAll('a[href^="#"], a[href^="index.html#"]').forEach(anchor
 
 console.log('Website TUB Projeto carregado com sucesso!');
 
-const btnComecar = document.querySelector('.btn3');
-if (btnComecar) {
-    btnComecar.addEventListener('click', function() {
-        alert('Conseguiste');
-    });
-}
-
+document.getElementById('btn-consulte').addEventListener('click', function() {
+    window.location.href = 'mapa.html'; // redireciona para a página de mapas
+    
+});
 ///////////////////////////////MAPA DE BRAGA///////////////////////////
 document.addEventListener("DOMContentLoaded", function () {
     verificarAcessos();

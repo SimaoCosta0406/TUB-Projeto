@@ -33,9 +33,14 @@
     <section id="home" class="hero">
         <div class="container">
             <p>Percursos e Horários</p>
-            <button class="btn3">Consulte aqui</button>
+            <button class="btn3" id="btn-consulte">Consulte aqui</button>
         </div>
     </section>
+    <script>
+        document.getElementById('btn-consulte').addEventListener('click', function() {
+            window.location.href = 'mapa.html'; // coloca o caminho correto da página de mapas
+        });
+    </script>
 
     <section id="about" class="about">
         <div class="container card-box">

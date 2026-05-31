@@ -2429,3 +2429,79 @@ body:has(.login-section) #nav-login a {
     background: #f59e0b !important;
     color: #0f172a !important;
 }
+
+.reports-actions button,
+.report-btn,
+#generateReport,
+#exportCSV,
+#exportPDF {
+    background: #f59e0b !important;   /* Laranja da palete */
+    color: #0f172a !important;        /* Texto escuro */
+    border: 1px solid #f59e0b !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 10px 18px !important;
+    cursor: pointer;
+    opacity: 1 !important;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.reports-actions button:hover,
+.report-btn:hover,
+#generateReport:hover,
+#exportCSV:hover,
+#exportPDF:hover {
+    background: #d97706 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+#generateReport,
+#exportCSV,
+#exportPDF {
+    background: #f59e0b !important;
+    color: #0f172a !important;
+    border: 1px solid #f59e0b !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 10px 18px !important;
+    cursor: pointer;
+    opacity: 1 !important;
+}
+
+#generateReport:hover,
+#exportCSV:hover,
+#exportPDF:hover {
+    background: #d97706 !important;
+    color: #ffffff !important;
+}
+/* Botões do relatório */
+button {
+    background-color: #f5a623; /* laranja */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #d48806; /* laranja escuro no hover */
+}
+
+/* Tabela de relatórios */
+#table-reports th {
+    background-color: #1f2a3c; /* cabeçalho escuro */
+    color: #f5a623; /* texto laranja */
+}
+
+#table-reports td {
+    color: white; /* texto das células */
+}
+
+#reportSummary {
+    color: #f5a623; /* resumo em laranja */
+    font-weight: 700;
+}
+
