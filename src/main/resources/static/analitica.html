@@ -112,18 +112,13 @@
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
-                <li id="nav-admin-users" style="display:none;">
-                    <a href="admin-users.html">Utilizadores</a>
-                </li>
-                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
-                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-admin-users" style="display:none;"><a href="admin-users.html">Utilizadores</a></li>
+                <li id="nav-veiculos" style="display:none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display:none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-alarmes" style="display:none;"><a href="javascript:void(0)" onclick="mostrarSecao('alarmes')">Alarmes</a></li>
                 <li id="nav-analytics"><a href="analitica.html">Analítica</a></li>
-                <li><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
-                <li id="nav-logout" style="display: none;"><a href="javascript:void(0)" onclick="fazerLogout()">Sair</a></li>
-                <li id="nav-alarmes" style="display: none;">
-                    <a href="javascript:void(0)" onclick="mostrarSecao('alarmes')">Alarmes</a>
-                </li>
+                <li id="nav-logout" style="display:none;"><a href="javascript:void(0)" onclick="fazerLogout()">Sair</a></li>
             </ul>
         </div>
     </nav>
@@ -228,13 +223,15 @@
                 const routes = await routesRes.json();
                 const reports = await reportsRes.json();
                 const users = await usersRes.json();
+                const analysisType = document.getElementById('analysisType').value;
+                const riskMode = document.getElementById('riskMode').value;
 
                 document.getElementById('kpiVehicles').innerText = vehicles.total ?? 0;
                 document.getElementById('kpiInService').innerText = vehicles.inService ?? 0;
                 document.getElementById('kpiRoutes').innerText = routes.total ?? 0;
                 document.getElementById('kpiReports').innerText = reports.length ?? 0;
                 document.getElementById('kpiUsers').innerText = users.length ?? 0;
-
+                
                 desenharGraficoVeiculos(
                     vehicles.inService ?? 0,
                     vehicles.outOfService ?? 0,
@@ -245,12 +242,41 @@
                     ? ((vehicles.outOfService + vehicles.maintenance) / vehicles.total) * 100
                     : 0;
 
-                let resumo = 'Operação estável.';
-                if (percentOut >= 40) {
-                    resumo = 'Risco operacional elevado: muitos veículos indisponíveis.';
-                } else if (percentOut >= 20) {
-                    resumo = 'Risco moderado: monitorizar disponibilidade da frota.';
-                }
+                        let thresholdModerado = 20;
+                        let thresholdElevado = 40;
+
+                        if (riskMode === 'strict') {
+                            thresholdModerado = 10;
+                            thresholdElevado = 25;
+                        }
+
+                        let resumo = 'Operação estável.';
+
+                        if (analysisType === 'vehicles') {
+                            if (percentOut >= thresholdElevado) {
+                                resumo = 'Análise de veículos: risco elevado de indisponibilidade da frota.';
+                            } else if (percentOut >= thresholdModerado) {
+                                resumo = 'Análise de veículos: risco moderado, recomenda-se monitorização da manutenção.';
+                            } else {
+                                resumo = 'Análise de veículos: frota com disponibilidade estável.';
+                            }
+                        } else if (analysisType === 'reports') {
+                            if ((reports.length ?? 0) === 0) {
+                                resumo = 'Análise de relatórios: não existem relatórios automáticos disponíveis.';
+                            } else if ((reports.length ?? 0) < 3) {
+                                resumo = 'Análise de relatórios: histórico automático reduzido, recomenda-se gerar mais relatórios.';
+                            } else {
+                                resumo = 'Análise de relatórios: histórico automático consistente.';
+                            }
+                        } else {
+                            if (percentOut >= thresholdElevado) {
+                                resumo = 'Visão global: risco operacional elevado.';
+                            } else if (percentOut >= thresholdModerado) {
+                                resumo = 'Visão global: risco operacional moderado.';
+                            } else {
+                                resumo = 'Visão global: operação estável.';
+                            }
+                        }
 
                 document.getElementById('analyticsSummary').innerHTML = `
                     <strong>Resumo Analítico:</strong> ${resumo}
@@ -259,33 +285,73 @@
                 const tbody = document.getElementById('insightsBody');
                 tbody.innerHTML = '';
 
-                const insights = [
-                    {
-                        tipo: 'Veículos indisponíveis',
-                        valor: `${(vehicles.outOfService + vehicles.maintenance) ?? 0}`,
-                        interpretacao: percentOut >= 20 ? 'Pressão operacional' : 'Nível aceitável'
-                    },
-                    {
-                        tipo: 'Taxa de serviço',
-                        valor: `${vehicles.total > 0 ? Math.round((vehicles.inService / vehicles.total) * 100) : 0}%`,
-                        interpretacao: vehicles.total > 0 && (vehicles.inService / vehicles.total) < 0.8 ? 'Abaixo do ideal' : 'Estável'
-                    },
-                    {
-                        tipo: 'Cobertura de rotas',
-                        valor: `${routes.total ?? 0}`,
-                        interpretacao: (routes.total ?? 0) > 0 ? 'Rede ativa' : 'Sem cobertura'
-                    },
-                    {
-                        tipo: 'Produção automática',
-                        valor: `${reports.length ?? 0} relatórios`,
-                        interpretacao: (reports.length ?? 0) > 0 ? 'Histórico disponível' : 'Sem histórico automático'
-                    },
-                    {
-                        tipo: 'Base de utilizadores',
-                        valor: `${users.length ?? 0}`,
-                        interpretacao: (users.length ?? 0) >= 3 ? 'Estrutura operacional presente' : 'Poucos utilizadores'
-                    }
-                ];
+                        let insights = [];
+
+                        if (analysisType === 'vehicles') {
+                            insights = [
+                                {
+                                    tipo: 'Veículos indisponíveis',
+                                    valor: `${(vehicles.outOfService + vehicles.maintenance) ?? 0}`,
+                                    interpretacao: percentOut >= thresholdModerado ? 'Pressão operacional' : 'Nível aceitável'
+                                },
+                                {
+                                    tipo: 'Taxa de serviço',
+                                    valor: `${vehicles.total > 0 ? Math.round((vehicles.inService / vehicles.total) * 100) : 0}%`,
+                                    interpretacao: vehicles.total > 0 && (vehicles.inService / vehicles.total) < 0.8 ? 'Abaixo do ideal' : 'Estável'
+                                },
+                                {
+                                    tipo: 'Modo de risco',
+                                    valor: riskMode === 'strict' ? 'Restritivo' : 'Normal',
+                                    interpretacao: riskMode === 'strict' ? 'Alertas mais sensíveis' : 'Tolerância standard'
+                                }
+                            ];
+                        } else if (analysisType === 'reports') {
+                            insights = [
+                                {
+                                    tipo: 'Relatórios automáticos',
+                                    valor: `${reports.length ?? 0}`,
+                                    interpretacao: (reports.length ?? 0) > 0 ? 'Histórico disponível' : 'Sem histórico'
+                                },
+                                {
+                                    tipo: 'Base de utilizadores',
+                                    valor: `${users.length ?? 0}`,
+                                    interpretacao: (users.length ?? 0) >= 3 ? 'Utilização distribuída' : 'Pouca atividade'
+                                },
+                                {
+                                    tipo: 'Modo de risco',
+                                    valor: riskMode === 'strict' ? 'Restritivo' : 'Normal',
+                                    interpretacao: riskMode === 'strict' ? 'Leitura conservadora' : 'Leitura equilibrada'
+                                }
+                            ];
+                        } else {
+                            insights = [
+                                {
+                                    tipo: 'Veículos indisponíveis',
+                                    valor: `${(vehicles.outOfService + vehicles.maintenance) ?? 0}`,
+                                    interpretacao: percentOut >= thresholdModerado ? 'Pressão operacional' : 'Nível aceitável'
+                                },
+                                {
+                                    tipo: 'Taxa de serviço',
+                                    valor: `${vehicles.total > 0 ? Math.round((vehicles.inService / vehicles.total) * 100) : 0}%`,
+                                    interpretacao: vehicles.total > 0 && (vehicles.inService / vehicles.total) < 0.8 ? 'Abaixo do ideal' : 'Estável'
+                                },
+                                {
+                                    tipo: 'Cobertura de rotas',
+                                    valor: `${routes.total ?? 0}`,
+                                    interpretacao: (routes.total ?? 0) > 0 ? 'Rede ativa' : 'Sem cobertura'
+                                },
+                                {
+                                    tipo: 'Produção automática',
+                                    valor: `${reports.length ?? 0} relatórios`,
+                                    interpretacao: (reports.length ?? 0) > 0 ? 'Histórico disponível' : 'Sem histórico automático'
+                                },
+                                {
+                                    tipo: 'Base de utilizadores',
+                                    valor: `${users.length ?? 0}`,
+                                    interpretacao: (users.length ?? 0) >= 3 ? 'Estrutura operacional presente' : 'Poucos utilizadores'
+                                }
+                            ];
+                        }
 
                 insights.forEach(item => {
                     const tr = document.createElement('tr');

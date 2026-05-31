@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TUB — Supervisor</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -148,7 +149,6 @@
         </div>
     </section>
 
-=======
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
                     <select id="reportType">
                         <option value="vehicles">Relatório de Veículos</option>
@@ -164,6 +164,7 @@
                 <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="gerarRelatorioManual()">Gerar Relatório</button>
                     <button onclick="exportarRelatorioCSV()">Exportar CSV</button>
+                    <button onclick="exportarRelatorioPDF()">Exportar PDF</button>
                 </div>
 
                 <div id="reportSummary" style="margin-bottom: 1rem; color: var(--white);"></div>
@@ -406,18 +407,8 @@
             // Carregar alarmes ao entrar
             abaAtiva('alarmes');
             // Atualizar a cada 10 segundos
-<<<<<<< HEAD
-            setInterval(function() {
-                if (abaAtualTab === 'alarmes') {
-                    carregarAlarmesParaSupervisor();
-                } else {
-                    carregarDesempenhoOperacional();
-                }
-            }, 10000);
-=======
             carregarRelatoriosAutomaticos();
             setInterval(carregarAlarmesParaSupervisor, 10000);
->>>>>>> 93e8d41f0c5699a4965995ae9cc901a0ce763e53
         });
         async function gerarRelatorioManual() {
             const tipo = document.getElementById('reportType').value;

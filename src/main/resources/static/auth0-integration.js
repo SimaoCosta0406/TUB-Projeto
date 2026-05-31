@@ -48,11 +48,11 @@ async function processarLogin() {
         // Determinar role (prioridade: ADMIN > SUPERVISOR > WORKER > USER)
         let role = 'USER'; // default
             if (roles.includes('ADMIN')) {
-                 role = 'ADMIN';
+                role = 'ADMIN';
             } else if (roles.includes('SUPERVISOR')) {
-                 role = 'SUPERVISOR';
+                role = 'SUPERVISOR';
             } else if (roles.includes('WORKER')) {
-                 role = 'WORKER';
+                role = 'WORKER';
 }
         
         // Criar objeto utilizador compatível com sistema existente
