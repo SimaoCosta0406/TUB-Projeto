@@ -37,7 +37,10 @@ public class SecurityConfig {
                 
                 // ===== PÚBLICO: Sistema de painéis (NÃO TOCAR) =====
                 .requestMatchers("/api/auth/**").permitAll()
-                
+
+                // ===== PÚBLICO: Auth0 Management (gestão de utilizadores) =====
+                .requestMatchers("/api/auth0-users/**").permitAll()
+
                 // ===== PÚBLICO: Endpoints de leitura (visitantes) =====
                 .requestMatchers(HttpMethod.GET, "/api/stops/**").permitAll()
                 

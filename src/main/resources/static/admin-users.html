@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Utilizadores - TUB</title>
+    <title>Gestão de Utilizadores Auth0 - TUB</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .admin-container {
-            max-width: 1100px;
+            max-width: 1400px;
             margin: 40px auto;
             padding: 20px;
         }
@@ -15,7 +15,7 @@
         .admin-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 25px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             margin-bottom: 25px;
         }
@@ -23,21 +23,30 @@
         .admin-card h2 {
             margin-bottom: 20px;
             color: #0c4a6e;
+            border-bottom: 3px solid #0ea5e9;
+            padding-bottom: 10px;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .form-grid input,
         .form-grid select {
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-grid input:focus,
+        .form-grid select:focus {
+            outline: none;
+            border-color: #0ea5e9;
         }
 
         .admin-actions {
@@ -48,26 +57,67 @@
 
         .admin-actions button,
         .table-actions button {
-            padding: 10px 14px;
+            padding: 10px 18px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
         }
 
         .btn-primary {
-            background: #0284c7;
-            color: white;
+            background: transparent;
+            color: #0c4a6e;  /* Azul escuro FIXO - mesma cor do background do site */
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 10px 18px;
         }
+
+        .btn-primary:hover {
+            opacity: 0.8;  /* Apenas fica ligeiramente transparente ao hover */
+        }
+
 
         .btn-secondary {
             background: #64748b;
             color: white;
         }
 
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
         .btn-danger {
-            background: #dc2626;
+            background: transparent;
+            color: #dc2626;  /* Vermelho FIXO */
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 10px 18px;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.8;  /* Apenas fica ligeiramente transparente ao hover */
+        }
+
+        .btn-success {
+            background: #16a34a;
             color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
         }
 
         table {
@@ -77,30 +127,27 @@
         }
 
         th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
             text-align: left;
         }
 
         th {
             background: #0ea5e9;
             color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
 
         tr:hover {
             background: #f8fafc;
         }
+
         tbody td {
             color: #1e293b;
             font-weight: 500;
-        }
-
-        tbody tr {
-            background: #ffffff;
-        }
-
-        tbody tr:hover td {
-            color: #0f172a;
         }
 
         .table-actions {
@@ -109,14 +156,157 @@
             flex-wrap: wrap;
         }
 
+        .role-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        .role-admin { background: #fef3c7; color: #92400e; }
+        .role-user { background: #dbeafe; color: #1e40af; }
+        .role-supervisor { background: #fce7f3; color: #9f1239; }
+        .role-worker { background: #d1fae5; color: #065f46; }
+        .role-driver { background: #e0e7ff; color: #3730a3; }
+
         .access-denied {
             max-width: 700px;
             margin: 50px auto;
             background: white;
-            padding: 30px;
+            padding: 40px;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #1e40af;
+        }
+
+        /* Modal de Roles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #0c4a6e;
+        }
+
+        .close {
+            color: #94a3b8;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #475569;
+        }
+
+        .role-checkbox-group {
+            margin: 20px 0;
+        }
+
+        .role-checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .role-checkbox-item:hover {
+            background: #f8fafc;
+            border-color: #0ea5e9;
+        }
+
+        .role-checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .role-checkbox-item label {
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -144,40 +334,36 @@
 
     <div id="adminPage" class="admin-container" style="display:none;">
         <div class="admin-card">
-            <h2>Gestão de Utilizadores</h2>
-
-            <input type="hidden" id="userId">
+            <h2>➕ Criar Novo Utilizador</h2>
 
             <div class="form-grid">
-                <input type="text" id="username" placeholder="Username">
-                <input type="email" id="email" placeholder="Email">
-                <input type="password" id="password" placeholder="Password">
-                <select id="role">
-                    <option value="">Selecionar role</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="SUPERVISOR">SUPERVISOR</option>
-                    <option value="WORKER">WORKER</option>
-                    <option value="DRIVER">DRIVER</option>
-                    <option value="USER">USER</option>
+                <input type="email" id="email" placeholder="Email *" required>
+                <input type="password" id="password" placeholder="Password (mín. 8 caracteres) *" required>
+                <input type="text" id="name" placeholder="Nome (opcional)">
+                <select id="roleSelect">
+                    <option value="">Selecionar Role (opcional)</option>
+                    <!-- Preenchido dinamicamente -->
                 </select>
             </div>
 
             <div class="admin-actions">
-                <button class="btn-primary" onclick="guardarUtilizador()">Guardar</button>
-                <button class="btn-secondary" onclick="limparFormularioUser()">Limpar</button>
+                <button class="btn-success" onclick="criarUtilizador()">✓ Criar Utilizador</button>
+                <button class="btn-secondary" onclick="limparFormulario()">✗ Limpar</button>
             </div>
         </div>
 
         <div class="admin-card">
-            <h2>Lista de Utilizadores</h2>
-            <table>
+            <h2>👥 Utilizadores</h2>
+            <div id="loading" class="loading" style="display:none;">
+                <p>A carregar utilizadores...</p>
+            </div>
+            <table id="usersTable" style="display:none;">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Username</th>
                         <th>Email</th>
-                        <th>Role</th>
-                        <th>Online</th>
+                        <th>Nome</th>
+                        <th>Roles</th>
+                        <th>Criado em</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -187,12 +373,37 @@
     </div>
 
     <div id="accessDenied" class="access-denied" style="display:none;">
-        <h2>Acesso Restrito</h2>
+        <h2>🔒 Acesso Restrito</h2>
         <p>Apenas administradores podem aceder à gestão de utilizadores.</p>
+        <p style="margin-top: 20px;">
+            <a href="index.html" style="color: #0284c7; text-decoration: none; font-weight: 600;">← Voltar à Home</a>
+        </p>
+    </div>
+
+    <!-- Modal de Gestão de Roles -->
+    <div id="rolesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gerir Roles</h3>
+                <span class="close" onclick="fecharModalRoles()">&times;</span>
+            </div>
+            <p id="modalUserEmail" style="color: #64748b; margin-bottom: 15px;"></p>
+            <div class="role-checkbox-group" id="rolesCheckboxGroup">
+                <!-- Preenchido dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-success" onclick="guardarRoles()">✓ Guardar</button>
+                <button class="btn-secondary" onclick="fecharModalRoles()">✗ Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
     <script>
+        let availableRoles = [];
+        let currentUserId = null;
+        let currentUserRoles = [];
+
         function verificarAcessoAdminPage() {
             const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
             const adminPage = document.getElementById('adminPage');
@@ -209,6 +420,7 @@
                 if (utilizador.role === 'ADMIN') {
                     adminPage.style.display = 'block';
                     accessDenied.style.display = 'none';
+                    carregarRoles();
                     carregarUtilizadores();
                 } else {
                     adminPage.style.display = 'none';
@@ -220,117 +432,268 @@
             }
         }
 
-        async function carregarUtilizadores() {
+        async function carregarRoles() {
             try {
-                const resposta = await fetch('/api/users');
-                const users = await resposta.json();
+                const resposta = await fetch('/api/auth0-users/roles');
+                if (!resposta.ok) {
+                    console.error('Erro ao carregar roles:', resposta.status);
+                    return;
+                }
+                
+                availableRoles = await resposta.json();
+                console.log('Roles carregados:', availableRoles);
+                
+                const select = document.getElementById('roleSelect');
+                select.innerHTML = '<option value="">Selecionar Role (opcional)</option>';
+                
+                availableRoles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.id;
+                    option.textContent = role.name;
+                    select.appendChild(option);
+                });
+            } catch (erro) {
+                console.error('Erro ao carregar roles:', erro);
+            }
+        }
 
-                const tbody = document.getElementById('usersTableBody');
+        async function carregarUtilizadores() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('usersTable');
+            const tbody = document.getElementById('usersTableBody');
+
+            loading.style.display = 'block';
+            table.style.display = 'none';
+
+            try {
+                const resposta = await fetch('/api/auth0-users');
+                if (!resposta.ok) throw new Error('Erro ao carregar utilizadores');
+                
+                const users = await resposta.json();
                 tbody.innerHTML = '';
 
-                users.forEach(user => {
+                for (const user of users) {
+                    // Obter roles do utilizador
+                    let userRoles = [];
+                    try {
+                        const rolesResp = await fetch(`/api/auth0-users/${user.user_id}/roles`);
+                        if (rolesResp.ok) {
+                            userRoles = await rolesResp.json();
+                        }
+                    } catch (e) {
+                        console.error('Erro ao obter roles:', e);
+                    }
+
                     const tr = document.createElement('tr');
+                    
+                    // Formatar data
+                    const createdDate = new Date(user.created_at).toLocaleDateString('pt-PT');
+                    
+                    // Criar badges de roles
+                    let rolesBadges = '';
+                    if (userRoles && userRoles.length > 0) {
+                        userRoles.forEach(role => {
+                            const roleName = role.name || 'Unknown';
+                            const roleClass = `role-${roleName.toLowerCase()}`;
+                            rolesBadges += `<span class="role-badge ${roleClass}">${roleName}</span>`;
+                        });
+                    } else {
+                        rolesBadges = '<span style="color: #94a3b8;">Sem role</span>';
+                    }
+
                     tr.innerHTML = `
-                        <td>${user.id ?? ''}</td>
-                        <td>${user.username ?? ''}</td>
-                        <td>${user.email ?? ''}</td>
-                        <td>${user.role ?? ''}</td>
-                        <td>${user.online ? 'Sim' : 'Não'}</td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.name || user.email || 'N/A'}</td>
+                        <td>${rolesBadges}</td>
+                        <td>${createdDate}</td>
                         <td>
                             <div class="table-actions">
-                                <button class="btn-primary" onclick="editarUtilizador(${user.id}, '${(user.username || '').replace(/'/g, "\\'")}', '${(user.email || '').replace(/'/g, "\\'")}', '${(user.password || '').replace(/'/g, "\\'")}', '${(user.role || '').replace(/'/g, "\\'")}')">Editar</button>
-                                <button class="btn-danger" onclick="apagarUtilizador(${user.id})">Apagar</button>
+                                <button class="btn-primary" onclick="abrirModalRoles('${user.user_id}', '${(user.email || '').replace(/'/g, "\\'")}')">
+                                    Gerir Roles
+                                </button>
+                                <button class="btn-danger" onclick="apagarUtilizador('${user.user_id}', '${(user.email || '').replace(/'/g, "\\'")}')">
+                                    Apagar
+                                </button>
                             </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
-                });
+                }
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+
             } catch (erro) {
                 console.error('Erro ao carregar utilizadores:', erro);
-                alert('Erro ao carregar utilizadores.');
+                loading.innerHTML = '<p style="color: #dc2626;">❌ Erro ao carregar utilizadores. Verifica a consola.</p>';
             }
         }
 
-        function editarUtilizador(id, username, email, password, role) {
-            document.getElementById('userId').value = id;
-            document.getElementById('username').value = username;
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = password;
-            document.getElementById('role').value = role;
-        }
-
-        function limparFormularioUser() {
-            document.getElementById('userId').value = '';
-            document.getElementById('username').value = '';
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('role').value = '';
-        }
-
-        async function guardarUtilizador() {
-            const id = document.getElementById('userId').value;
-            const username = document.getElementById('username').value.trim();
+        async function criarUtilizador() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
-            const role = document.getElementById('role').value;
+            const name = document.getElementById('name').value.trim();
+            const roleId = document.getElementById('roleSelect').value;
 
-            if (!username || !email || !password || !role) {
-                alert('Preenche todos os campos.');
+            if (!email) {
+                alert('❌ Email é obrigatório');
                 return;
             }
 
-            const payload = {
-                username,
-                email,
-                password,
-                role,
-                online: false
-            };
+            if (!password || password.length < 8) {
+                alert('❌ Password deve ter pelo menos 8 caracteres');
+                return;
+            }
 
-            const url = id ? `/api/users/${id}` : '/api/users';
-            const method = id ? 'PUT' : 'POST';
+            const payload = { email, password };
+            if (name) payload.name = name;
+            if (roleId) payload.roleId = roleId;
 
             try {
-                const resposta = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                const resposta = await fetch('/api/auth0-users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (resposta.ok) {
-                    alert(id ? 'Utilizador atualizado com sucesso.' : 'Utilizador criado com sucesso.');
-                    limparFormularioUser();
+                    alert('✅ Utilizador criado com sucesso no Auth0!');
+                    limparFormulario();
                     carregarUtilizadores();
                 } else {
-                    const erroTexto = await resposta.text();
-                    alert('Erro ao guardar utilizador: ' + erroTexto);
+                    const erro = await resposta.text();
+                    alert('❌ Erro ao criar utilizador: ' + erro);
                 }
             } catch (erro) {
-                console.error('Erro ao guardar utilizador:', erro);
-                alert('Erro de ligação ao servidor.');
+                console.error('Erro ao criar utilizador:', erro);
+                alert('❌ Erro de ligação ao servidor');
             }
         }
 
-        async function apagarUtilizador(id) {
-            const confirmar = confirm('Tens a certeza que queres apagar este utilizador?');
+        async function apagarUtilizador(userId, email) {
+            const confirmar = confirm(`⚠️ Tens a certeza que queres apagar o utilizador "${email}"?\n\nEsta ação é IRREVERSÍVEL e apaga o utilizador do Auth0!`);
             if (!confirmar) return;
 
             try {
-                const resposta = await fetch(`/api/users/${id}`, {
+                const resposta = await fetch(`/api/auth0-users/${userId}`, {
                     method: 'DELETE'
                 });
 
-                if (resposta.ok) {
-                    alert('Utilizador apagado com sucesso.');
+                if (resposta.ok || resposta.status === 204) {
+                    alert('✅ Utilizador apagado com sucesso do Auth0!');
                     carregarUtilizadores();
                 } else {
-                    alert('Erro ao apagar utilizador.');
+                    const erro = await resposta.text();
+                    alert('❌ Erro ao apagar utilizador: ' + erro);
                 }
             } catch (erro) {
                 console.error('Erro ao apagar utilizador:', erro);
-                alert('Erro de ligação ao servidor.');
+                alert('❌ Erro de ligação ao servidor');
+            }
+        }
+
+        async function abrirModalRoles(userId, email) {
+            currentUserId = userId;
+            document.getElementById('modalUserEmail').textContent = `Utilizador: ${email}`;
+
+            // Obter roles atuais do utilizador
+            try {
+                const resposta = await fetch(`/api/auth0-users/${userId}/roles`);
+                currentUserRoles = resposta.ok ? await resposta.json() : [];
+                
+                console.log('Roles atuais do utilizador:', currentUserRoles);
+            } catch (e) {
+                console.error('Erro ao obter roles:', e);
+                currentUserRoles = [];
+            }
+
+            // Preencher checkboxes
+            const container = document.getElementById('rolesCheckboxGroup');
+            container.innerHTML = '';
+
+            availableRoles.forEach(role => {
+                // Verificar se o utilizador já tem este role
+                const isChecked = currentUserRoles.some(ur => {
+                    console.log(`Comparando: ur.id="${ur.id}" com role.id="${role.id}"`);
+                    return ur.id === role.id;
+                });
+                
+                console.log(`Role ${role.name}: checked=${isChecked}`);
+                
+                const div = document.createElement('div');
+                div.className = 'role-checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="role_${role.id}" value="${role.id}" ${isChecked ? 'checked' : ''}>
+                    <label for="role_${role.id}">${role.name}</label>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('rolesModal').style.display = 'block';
+        }
+
+
+        function fecharModalRoles() {
+            document.getElementById('rolesModal').style.display = 'none';
+            currentUserId = null;
+            currentUserRoles = [];
+        }
+
+        async function guardarRoles() {
+            if (!currentUserId) return;
+
+            const checkboxes = document.querySelectorAll('#rolesCheckboxGroup input[type="checkbox"]');
+            const selectedRoles = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            const currentRoleIds = currentUserRoles.map(r => r.id);
+
+            // Roles a adicionar
+            const toAdd = selectedRoles.filter(id => !currentRoleIds.includes(id));
+            
+            // Roles a remover
+            const toRemove = currentRoleIds.filter(id => !selectedRoles.includes(id));
+
+            try {
+                // Adicionar roles
+                for (const roleId of toAdd) {
+                    await fetch(`/api/auth0-users/${currentUserId}/roles`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ roleId })
+                    });
+                }
+
+                // Remover roles
+                for (const roleId of toRemove) {
+                    await fetch(`/api/auth0-users/${currentUserId}/roles/${roleId}`, {
+                        method: 'DELETE'
+                    });
+                }
+
+                alert('✅ Roles atualizados com sucesso!');
+                fecharModalRoles();
+                carregarUtilizadores();
+
+            } catch (erro) {
+                console.error('Erro ao guardar roles:', erro);
+                alert('❌ Erro ao guardar roles');
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('roleSelect').value = '';
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('rolesModal');
+            if (event.target == modal) {
+                fecharModalRoles();
             }
         }
 
