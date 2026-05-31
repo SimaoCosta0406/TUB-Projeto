@@ -406,18 +406,8 @@
             // Carregar alarmes ao entrar
             abaAtiva('alarmes');
             // Atualizar a cada 10 segundos
-<<<<<<< HEAD
-            setInterval(function() {
-                if (abaAtualTab === 'alarmes') {
-                    carregarAlarmesParaSupervisor();
-                } else {
-                    carregarDesempenhoOperacional();
-                }
-            }, 10000);
-=======
             carregarRelatoriosAutomaticos();
             setInterval(carregarAlarmesParaSupervisor, 10000);
->>>>>>> 93e8d41f0c5699a4965995ae9cc901a0ce763e53
         });
         async function gerarRelatorioManual() {
             const tipo = document.getElementById('reportType').value;

@@ -1358,7 +1358,6 @@ button[id="searchBtn"] {
 #nav-logout a:hover {
     background: rgba(245, 158, 11, 0.12);
 }
-<<<<<<< HEAD
 #table-reports {
     width: 100%;
     border-collapse: collapse;
@@ -1532,5 +1531,3 @@ button[id="searchBtn"] {
 #table-history tbody tr:hover {
     background: #f8fafc;
 }
-=======
->>>>>>> 721375ab3b4c0e0a354ea3a1303d1c5a7130d042
