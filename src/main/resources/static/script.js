@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const painelIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
             shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-            iconSize: [18, 25],
-            iconAnchor: [9, 25],
+            iconSize: [35, 55],
+            iconAnchor: [17, 55],
             popupAnchor: [1, -45],
             shadowSize: [55, 55]
         });
@@ -831,4 +831,28 @@ async function adminMarcarInconsistente(id) {
     } catch (err) {
         console.error("Erro ao marcar inconsistente:", err);
     }
+}
+function exportarRelatorioPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Seleciona o conteúdo do relatório
+    const reportContent = document.getElementById("reportSummary").innerText + "\n";
+
+    // Adiciona conteúdo ao PDF
+    doc.text(reportContent, 10, 10);
+
+    // Se quiser incluir a tabela, você pode iterar pelas linhas da tabela
+    const table = document.getElementById("table-reports");
+    if (table) {
+        let startY = 20;
+        Array.from(table.rows).forEach(row => {
+            const rowText = Array.from(row.cells).map(cell => cell.innerText).join(" | ");
+            doc.text(rowText, 10, startY);
+            startY += 10;
+        });
+    }
+
+    // Salvar PDF
+    doc.save("relatorio.pdf");
 }
