@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         const marcador = L.marker([stop.latitude, stop.longitude], { icon: painelIcon })
                             .addTo(map)
                             .bindPopup(popupContent);
+                        marcadores.push(marcador);
                     }
                 });
             } catch (erro) {
@@ -169,6 +170,7 @@ function fazerLogout() {
 }
 
 function verificarAcessos() {
+    const navAdminUsers = document.getElementById('nav-admin-users');
     const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
     const navLogin         = document.getElementById('nav-login');
     const navLogout        = document.getElementById('nav-logout');
@@ -198,6 +200,11 @@ function verificarAcessos() {
             if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
             if (navVeiculos)      navVeiculos.style.display      = 'inline-block';
             if (navRotas)         navRotas.style.display         = 'inline-block';
+        }
+        if (utilizador.role === 'ADMIN') {
+            if (navAdminUsers) navAdminUsers.style.display = 'inline-block';
+        } else {
+            if (navAdminUsers) navAdminUsers.style.display = 'none';
         }
 
         if (utilizador.role === 'WORKER') {

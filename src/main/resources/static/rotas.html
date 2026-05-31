@@ -140,7 +140,7 @@
                     const row = document.createElement('tr');
 
                     const statusClass = route.status === 'ACTIVE' ? 'status-active' :
-                                      route.status === 'INACTIVE' ? 'status-inactive' : 'status-maintenance';
+                                    route.status === 'INACTIVE' ? 'status-inactive' : 'status-maintenance';
 
                     const stopsText = route.stops && route.stops.length > 0 ?
                         route.stops.slice(0, 3).join(', ') + (route.stops.length > 3 ? '...' : '') : '-';
