@@ -2128,3 +2128,304 @@ button[onclick^="apagarVeiculo"]:hover {
 #vehiclesChart {
     background: #ffffff !important;
 }
+
+/* ===== ROTAS - CORREÇÃO DE VISIBILIDADE ===== */
+
+#routesTable,
+#table-routes,
+table {
+    background: #ffffff !important;
+}
+
+#routesTable th,
+#table-routes th {
+    background: #0ea5e9 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+#routesTable td,
+#table-routes td {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+}
+
+#routesTable tbody tr,
+#table-routes tbody tr {
+    background: #ffffff !important;
+}
+
+#routesTable tbody tr:hover,
+#table-routes tbody tr:hover {
+    background: #f8fafc !important;
+}
+
+#routesTable select,
+#table-routes select {
+    background: #0b1f36 !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+}
+
+/* Botões das rotas */
+#routesTable button,
+#table-routes button {
+    opacity: 1 !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+/* Editar */
+#routesTable button[onclick^="editar"],
+#table-routes button[onclick^="editar"],
+#routesTable button[onclick^="abrirEditar"],
+#table-routes button[onclick^="abrirEditar"] {
+    background: #f59e0b !important;
+}
+
+/* Ver veículos */
+#routesTable button[onclick*="Veiculo"],
+#table-routes button[onclick*="Veiculo"],
+#routesTable button[onclick*="veiculo"],
+#table-routes button[onclick*="veiculo"] {
+    background: #0ea5e9 !important;
+}
+
+/* Apagar */
+#routesTable button[onclick^="apagar"],
+#table-routes button[onclick^="apagar"] {
+    background: #ef4444 !important;
+}
+/* ===== ROTAS - TÍTULO DO CARTÃO ===== */
+
+#rotas h2,
+#routes h2,
+#routes-section h2,
+.routes-section h2,
+.card-full h2 {
+    color: #f59e0b !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+}
+
+/* ===== ROTAS / MAPA - PALETE UNIFORME ===== */
+
+.routes-section {
+    background: #f5f7fb !important;
+    color: #1e293b !important;
+}
+
+.routes-container {
+    background: transparent !important;
+}
+
+/* Lista lateral das rotas */
+.route-item {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08) !important;
+}
+
+.route-item:hover {
+    background: #f8fafc !important;
+    border-color: #f59e0b !important;
+    transform: translateX(4px);
+}
+
+.route-number {
+    color: #f59e0b !important;
+}
+
+.route-path {
+    color: #12385b !important;
+    font-weight: 800 !important;
+}
+
+.route-meta {
+    color: #64748b !important;
+}
+
+.route-arrow {
+    color: #f59e0b !important;
+}
+
+/* Cartão grande do mapa */
+.route-details-container {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+.route-details-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.route-details-header h2 {
+    color: #f59e0b !important;
+    font-weight: 900 !important;
+}
+
+.btn-back {
+    background: #ffffff !important;
+    border: 1px solid #f59e0b !important;
+    color: #f59e0b !important;
+    font-weight: 800 !important;
+}
+
+.btn-back:hover {
+    background: #fff7ed !important;
+}
+
+/* Mapa */
+.route-map,
+#route-map,
+#map {
+    border-radius: 0 0 14px 14px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* Zona dos autocarros */
+.vehicles-info {
+    background: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+.vehicles-info h3 {
+    color: #f59e0b !important;
+    font-weight: 900 !important;
+}
+
+.stat-label {
+    color: #64748b !important;
+    font-weight: 800 !important;
+}
+
+.stat-value {
+    color: #f59e0b !important;
+}
+
+/* Cartões dos veículos */
+.vehicle-card {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.vehicle-card.active {
+    background: #ecfdf5 !important;
+    border-color: #22c55e !important;
+}
+
+.vehicle-card.inactive {
+    background: #fef2f2 !important;
+    border-color: #ef4444 !important;
+    opacity: 1 !important;
+}
+
+.vehicle-plate {
+    background: #071b33 !important;
+    color: #f59e0b !important;
+}
+
+.vehicle-details p {
+    color: #1e293b !important;
+}
+
+.vehicle-details strong {
+    color: #12385b !important;
+}
+
+/* Badges */
+.status-badge.IN_SERVICE {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.status-badge.OUT_OF_SERVICE,
+.status-badge.MAINTENANCE {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+/* ===== TÍTULO HORÁRIOS E PERCURSOS ===== */
+.horarios-title,
+.routes-header h1,
+.routes-header h2,
+#horarios h1,
+#horarios h2 {
+    color: #1e293b !important; /* Azul escuro */
+    font-weight: 900 !important;
+    opacity: 1 !important;
+}
+
+/* ===== LOGIN - PALETE UNIFORME ===== */
+
+.login-section {
+    background: #f5f7fb !important;
+    min-height: calc(100vh - 90px) !important;
+    padding-top: 90px !important;
+}
+
+.login-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.10) !important;
+}
+
+.login-card h2 {
+    color: #f59e0b !important;
+    font-weight: 900 !important;
+}
+
+.login-card p {
+    color: #64748b !important;
+}
+
+.btn-login {
+    background: #f59e0b !important;
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    border-radius: 10px !important;
+}
+
+.btn-login:hover {
+    background: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.login-card a {
+    color: #f59e0b !important;
+    font-weight: 800 !important;
+}
+
+.login-card a:hover {
+    color: #d97706 !important;
+}
+/* ===== NAVBAR LOGIN CLARA ===== */
+
+body:has(.login-section) .navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body:has(.login-section) .nav-links a {
+    color: #64748b !important;
+}
+
+body:has(.login-section) .nav-links a:hover {
+    color: #f59e0b !important;
+    background: #fff7ed !important;
+}
+
+body:has(.login-section) #nav-login a {
+    background: #f59e0b !important;
+    color: #0f172a !important;
+}
