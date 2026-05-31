@@ -5,6 +5,7 @@ import dai.boot.projeto.entities.Route;
 import dai.boot.projeto.entities.Stop;
 import dai.boot.projeto.repository.InformationPanelRepository;
 import dai.boot.projeto.repository.RouteRepository;
+import dai.boot.projeto.repository.StopRepository;
 import dai.boot.projeto.service.PanelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ public class PanelController {
 
     @Autowired
     private RouteRepository routeRepository;
+
+    @Autowired
+    private StopRepository stopRepository;
 
     @Autowired
     private dai.boot.projeto.repository.PanelMessageRepository panelMessageRepository;
@@ -48,6 +52,21 @@ public class PanelController {
                     return ResponseEntity.badRequest().build();
                 }
             }
+            if (panel.getStop() != null && panel.getStop().getId() != null) {
+                Optional<Stop> stop = stopRepository.findById(panel.getStop().getId());
+                if (stop.isPresent()) {
+                    panel.setStop(stop.get());
+                } else {
+                    return ResponseEntity.badRequest().build();
+                }
+            }
+            if (panel.getStatus() == null || panel.getStatus().isBlank()) {
+                panel.setStatus("ACTIVE");
+            }
+            if (panel.getInstallationDate() == null) {
+                panel.setInstallationDate(LocalDateTime.now());
+            }
+            panel.setLastUpdated(LocalDateTime.now());
             InformationPanel savedPanel = panelRepository.save(panel);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPanel);
         } catch (Exception e) {
@@ -85,7 +104,18 @@ public class PanelController {
             if (panelDetails.getPanelType() != null) panel.setPanelType(panelDetails.getPanelType());
             if (panelDetails.getStatus() != null) panel.setStatus(panelDetails.getStatus());
             if (panelDetails.getConnectivityType() != null) panel.setConnectivityType(panelDetails.getConnectivityType());
-            if (panelDetails.getStop() != null) panel.setStop(panelDetails.getStop());
+            if (panelDetails.getStop() != null) {
+                if (panelDetails.getStop().getId() != null) {
+                    Optional<Stop> stop = stopRepository.findById(panelDetails.getStop().getId());
+                    if (stop.isPresent()) {
+                        panel.setStop(stop.get());
+                    } else {
+                        return ResponseEntity.badRequest().build();
+                    }
+                } else {
+                    panel.setStop(null);
+                }
+            }
             
             // Atualizar rota
             if (panelDetails.getRoute() != null) {
@@ -101,6 +131,7 @@ public class PanelController {
                 }
             }
 
+            panel.setLastUpdated(LocalDateTime.now());
             InformationPanel updatedPanel = panelRepository.save(panel);
             return ResponseEntity.ok(updatedPanel);
         } catch (Exception e) {
