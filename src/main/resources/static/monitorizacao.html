@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Monitorização</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="map-section">
+        <div class="card-full">
+            <h2>Monitorização de Ocupação</h2>
+
+            <!-- Alerta de falha de sensores -->
+            <div id="alerta-sensor" style="display: none; background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.35); border-radius: 8px; color: #ff8f85; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                ⚠️ Falha detetada nos sensores!
+            </div>
+
+            <h3 style="font-family: var(--font-display); color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;">
+                Estado Atual dos Painéis
+            </h3>
+
+            <table id="table-ocupacao">
+                <thead>
+                    <tr>
+                        <th>Localização</th>
+                        <th>Linha</th>
+                        <th>Entradas</th>
+                        <th>Saídas</th>
+                        <th>Ocupação Total</th>
+                        <th>Percentagem</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-ocupacao">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--muted); padding: 2rem;">
+                            A carregar dados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Gestão de Linhas de Painéis -->
+        <div class="card-full">
+            <h2>Gestão de Linhas de Painéis</h2>
+
+            <h3 style="font-family: var(--font-display); color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;">
+                Atribuir Linha a um Painel
+            </h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1.5rem;">
+                <div>
+                    <label for="painel-select" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Selecionar Painel:</label>
+                    <select id="painel-select" style="width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;">
+                        <option value="">-- Selecionar Painel --</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Localização:</label>
+                    <input type="text" id="painel-location" readonly style="width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; background-color: #f5f5f5; cursor: not-allowed;">
+                </div>
+                <div>
+                    <label for="linha-input" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Escrever Linha:</label>
+                    <input type="text" id="linha-input" placeholder="Ex: Linha 1, Linha A, etc..." style="width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;">
+                </div>
+                <button onclick="guardarLinhaManual()" style="padding: 0.7rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Guardar</button>
+            </div>
+
+            <div id="info-painel-atual" style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.3); border-radius: 8px; padding: 1rem; display: none;">
+                <p><strong>Painel Atual:</strong> <span id="painel-info-text">-</span></p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'ADMIN') {
+                alert('Acesso negado. Apenas administradores podem acessar esta página.');
+                window.location.href = 'index.html';
+                return;
+            }
+        });
+
+        async function carregarDadosOcupacao() {
+            try {
+                // Buscar painéis para obter as localizações
+                const panelsResponse = await fetch('/api/panels');
+                if (!panelsResponse.ok) {
+                    throw new Error(`Erro ao buscar painéis: ${panelsResponse.status}`);
+                }
+                const panels = await panelsResponse.json();
+                console.log('Painéis carregados:', panels);
+
+                // Inicializar occupancyByPanel com todos os painéis a zero
+                const occupancyByPanel = {};
+                panels.forEach(panel => {
+                    occupancyByPanel[panel.id] = {
+                        panelId:        panel.id,
+                        location:       panel.location,
+                        line:           panel.route ? panel.route.code : null,
+                        totalEntradas:  0,
+                        totalSaidas:    0,
+                        totalOccupancy: 0,
+                        latestTimestamp: null
+                    };
+                });
+
+                // Buscar todas as contagens de passageiros
+                const countsResponse = await fetch('/api/passengers/current');
+                if (!countsResponse.ok) {
+                    throw new Error(`Erro ao buscar contagens: ${countsResponse.status}`);
+                }
+                const countsByPanel = await countsResponse.json();
+                const counts = Object.values(countsByPanel).map(count => ({
+                    panelId: count.panelId,
+                    timestamp: count.latestTimestamp,
+                    entryCount: count.totalEntries || 0,
+                    exitCount: count.totalExits || 0,
+                    currentOccupancy: count.currentOccupancy || 0,
+                    line: '-'
+                }));
+                console.log('Contagens carregadas:', countsByPanel);
+
+                // Usar apenas a contagem mais recente por painel
+                counts.forEach(count => {
+                    if (occupancyByPanel[count.panelId]) {
+                        const currentEntry = occupancyByPanel[count.panelId];
+                        const countTimestamp = new Date(count.timestamp);
+                        
+                        // Se é mais recente ou é a primeira entrada
+                        if (!currentEntry.latestTimestamp || countTimestamp > currentEntry.latestTimestamp) {
+                            currentEntry.totalEntradas = count.entryCount || 0;
+                            currentEntry.totalSaidas = count.exitCount || 0;
+                            currentEntry.totalOccupancy = count.currentOccupancy || 0;
+                            currentEntry.latestTimestamp = countTimestamp;
+                        }
+                    }
+                });
+
+                const tabela = document.getElementById('tabela-ocupacao');
+                tabela.innerHTML = '';
+
+                const paineis = Object.values(occupancyByPanel);
+
+                if (paineis.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">Sem dados disponíveis.</td></tr>';
+                    return;
+                }
+
+                const CAPACIDADE = 55; // Capacidade de um autocarro
+                let temErros = false;
+
+                paineis.forEach(panel => {
+                    const ocup = Math.max(0, Math.min(CAPACIDADE, panel.totalOccupancy));
+                    const percentagem = Math.round((ocup / CAPACIDADE) * 100);
+                    
+                    // Validar se percentagem é válida
+                    let cor = 'var(--success)';
+                    let percentagemDisplay = percentagem + '%';
+                    
+                    if (percentagem >= 100) {
+                        cor = 'var(--danger)';
+                        percentagemDisplay = '100% CHEIO';
+                    } else if (percentagem > 80) {
+                        cor = 'var(--danger)';
+                    } else if (percentagem > 60) {
+                        cor = 'var(--warning)';
+                    }
+                    
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${panel.location} (ID: ${panel.panelId})</td>
+                            <td>${panel.line ?? '—'}</td>
+                            <td>${panel.totalEntradas}</td>
+                            <td>${panel.totalSaidas}</td>
+                            <td><strong style="color: ${cor}">${ocup}/${CAPACIDADE}</strong></td>
+                            <td><strong style="color: ${cor}">${percentagemDisplay}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                // Mostrar alerta se houver erros de percentagem
+                const alertaSensor = document.getElementById('alerta-sensor');
+                if (temErros) {
+                    alertaSensor.textContent = '⚠️ ERRO: Ocupação inválida detectada! Verifique se entradas/saídas estão corretas.';
+                    alertaSensor.style.display = 'block';
+                } else {
+                    alertaSensor.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                const tabela = document.getElementById('tabela-ocupacao');
+                if (tabela) {
+                    tabela.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:2rem;">Erro ao carregar: ${error.message}</td></tr>`;
+                }
+                document.getElementById('alerta-sensor').style.display = 'block';
+            }
+        }
+
+        carregarDadosOcupacao();
+        setInterval(carregarDadosOcupacao, 2000);
+
+        let painelsList = [];
+
+        async function carregarGestaoLinhas() {
+            try {
+                // Buscar painéis
+                const panelsResponse = await fetch('/api/panels');
+                painelsList = await panelsResponse.json();
+
+                // Preencher dropdown de painéis
+                const selectPainel = document.getElementById('painel-select');
+                selectPainel.innerHTML = '<option value="">-- Selecionar Painel --</option>';
+
+                painelsList.forEach(panel => {
+                    const option = document.createElement('option');
+                    option.value = panel.id;
+                    option.textContent = `Painel ${panel.id} - ${panel.location}`;
+                    selectPainel.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar gestão de linhas:', error);
+            }
+        }
+
+        // Event listener para quando seleciona um painel
+        document.getElementById('painel-select').addEventListener('change', function() {
+            const panelId = this.value;
+            const linhaInput = document.getElementById('linha-input');
+            const locationInput = document.getElementById('painel-location');
+            const infoPainel = document.getElementById('info-painel-atual');
+
+            if (panelId) {
+                const selectedPanel = painelsList.find(p => p.id == panelId);
+                if (selectedPanel) {
+                    locationInput.value = selectedPanel.location;
+                    linhaInput.value = selectedPanel.route ? selectedPanel.route.code : '';
+                    infoPainel.style.display = 'block';
+                    document.getElementById('painel-info-text').textContent = `${selectedPanel.location} (ID: ${selectedPanel.id})`;
+                }
+            } else {
+                locationInput.value = '';
+                linhaInput.value = '';
+                infoPainel.style.display = 'none';
+            }
+        });
+
+        async function guardarLinhaManual() {
+            const panelId = document.getElementById('painel-select').value;
+            const linhaText = document.getElementById('linha-input').value.trim();
+
+            if (!panelId) {
+                alert('Por favor, selecione um painel.');
+                return;
+            }
+
+            if (!linhaText) {
+                alert('Por favor, escreva a linha.');
+                return;
+            }
+
+            try {
+                // Buscar a rota pelo código (linha)
+                const routesResponse = await fetch('/api/routes');
+                const routes = await routesResponse.json();
+                const foundRoute = routes.find(r => r.code === linhaText);
+
+                if (!foundRoute) {
+                    alert(`Linha "${linhaText}" não encontrada. Por favor, verifique e tente novamente.`);
+                    return;
+                }
+
+                // Atualizar o painel com a rota encontrada
+                const updateData = {
+                    route: { id: foundRoute.id }
+                };
+
+                const response = await fetch(`/api/panels/${panelId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    alert(`Painel atualizado com sucesso! Linha: ${linhaText}`);
+                    // Recarregar dados
+                    carregarGestaoLinhas();
+                    carregarDadosOcupacao();
+                    document.getElementById('painel-select').value = '';
+                    document.getElementById('linha-input').value = '';
+                    document.getElementById('painel-location').value = '';
+                    document.getElementById('info-painel-atual').style.display = 'none';
+                } else {
+                    alert('Erro ao atualizar painel. Por favor, tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro ao guardar linha:', error);
+                alert('Erro ao guardar linha.');
+            }
+        }
+
+        // Carregar gestão de linhas quando a página carrega
+        carregarGestaoLinhas();
+    </script>
+</body>
+</html>

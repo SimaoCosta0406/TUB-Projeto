@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painéis de Informação</title>
+    <title>Paineis de Informacao</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-        *{
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: #000;
+            background: #000;
             min-height: 100vh;
             overflow: hidden;
             cursor: none;
@@ -24,27 +20,19 @@
         .led-panel {
             width: 100vw;
             height: 100vh;
-            background-color: #0a0a0a;
             display: flex;
             flex-direction: column;
-            padding: 20px 30px;
+            padding: 18px 28px 16px;
+            background: linear-gradient(180deg, #050505 0%, #101010 100%);
+            color: #ffb347;
             position: relative;
         }
 
         .led-panel::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 0, 0, 0.8) 2px,
-                rgba(0, 0, 0, 0.8) 4px
-            );
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.65) 2px, rgba(0,0,0,0.65) 4px);
             pointer-events: none;
             z-index: 10;
         }
@@ -53,68 +41,73 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0 15px;
+            gap: 24px;
+            padding: 8px 0 16px;
             border-bottom: 3px solid #ff9800;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 14px;
+            flex-wrap: wrap;
+            min-width: 0;
         }
 
-        .header-title {
-            color: #ff9800;
-            font-size: 2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
-        }
-
+        .header-title,
         .header-brand {
             color: #ff9800;
-            font-size: 1.8rem;
-            font-weight: bold;
-            letter-spacing: 4px;
-            text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255,152,0,0.45);
         }
+
+        .header-title { display: none; }
+        .header-brand { font-size: 1.8rem; letter-spacing: 4px; }
 
         .header-right {
             text-align: right;
+            min-width: 220px;
         }
 
-        .header-time{
-            color : #ff9800;
-            font-size: 1.5rem;
-            text-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
+        .header-time {
+            color: #ff9800;
+            font-size: 2.1rem;
+            text-shadow: 0 0 10px rgba(255,152,0,0.6);
         }
 
         .header-stop {
-            color: #ff9800;
-            font-size: 0.9rem;
+            color: #ffb347;
+            font-size: 1rem;
             margin-top: 2px;
-            opacity: 0.7;
+        }
+
+        .table-header,
+        .arrivals-row {
+            display: grid;
+            grid-template-columns: 95px minmax(220px, 1fr) 145px 185px 160px;
+            gap: 16px;
+            align-items: center;
         }
 
         .table-header {
-            display: grid;
-            grid-template-columns: 80px 1fr 200px 100px;
-            padding: 10px 15px;
-            border-bottom: 2px solid #333;
-            margin-bottom: 5px;
+            padding: 12px 18px;
+            border: 2px solid #2a2a2a;
+            background: #141414;
+            margin-bottom: 8px;
         }
 
         .table-header span {
-            color: #ffb74d;
-            font-size:1rem;
+            color: #ffcc80;
+            font-size: 1.05rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.7;
+            letter-spacing: 1px;
         }
 
-        .table-header span:last-child {
+        .table-header span:nth-child(3),
+        .table-header span:nth-child(4),
+        .table-header span:nth-child(5) {
             text-align: right;
         }
 
@@ -124,111 +117,102 @@
         }
 
         .arrivals-row {
-            display: grid;
-            grid-template-columns: 80px 1fr 200px 100px;
-            padding: 14px 15px;
-            border-bottom: 1px solid #1a1a1a;
-            animation: fadeIn 0.5s ease-in;
-            transition: all 0.3s;
+            min-height: 92px;
+            padding: 18px;
+            margin-bottom: 8px;
+            border: 2px solid #222;
+            background: #101010;
+            animation: fadeIn 0.35s ease both;
         }
 
-        .arrivals-row:hover {
-            background-color: rgba(255, 152, 0, 0.05);
-        }
-
-        .arrival-row .route-code {
+        .route-code {
             color: #ffc107;
-            font-size: 1.8rem;
-            font-weight: bold;
-            text-shadow: 0 0 12px rgba(255, 193, 7, 0.6);
+            font-size: 2.45rem;
+            font-weight: 700;
             line-height: 1;
+            text-shadow: 0 0 14px rgba(255,193,7,0.7);
         }
 
-        .arrival-row .destination {
+        .destination {
             color: #ff9800;
-            font-size: 1.8rem;
-            font-weight: bold;
+            font-size: 2.08rem;
+            font-weight: 700;
+            line-height: 1;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 152, 0, 0.4);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1;
+            text-shadow: 0 0 12px rgba(255,152,0,0.45);
         }
 
-        .arrival-row .capacity {
-            color: #ffb74d;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-shadow: 0 0 6px rgba(255, 183, 77, 0.3);
-        }
-
-        .arrival-row .eta{
-            color: #ffc107;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-shadow: 0 0 6px rgba(255, 193, 77, 0.3);
-        }
-
-        .capacity-bar{
-            width: 80px;
-            height: 8px;
-            background-color: #1a1a1a;
-            border-radius: 4px;
+        .route-name {
+            color: #8f8f8f;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            white-space: nowrap;
             overflow: hidden;
-            margin-top: 4px;
+            text-overflow: ellipsis;
         }
 
-        .capacity-fill {
+        .eta,
+        .passenger-count,
+        .occupancy-percent {
+            color: #f5f5f5;
+            font-size: 1.8rem;
+            text-align: right;
+            text-shadow: 0 0 8px rgba(255,255,255,0.22);
+        }
+
+        .eta {
+            color: #ffc107;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(255,193,7,0.45);
+        }
+
+        .occupancy-meter {
+            height: 10px;
+            margin-top: 10px;
+            border: 1px solid #333;
+            background: #050505;
+            overflow: hidden;
+        }
+
+        .occupancy-fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 0.3s ease;
+            width: 0;
+            background: #4caf50;
         }
 
-        .capacity-fill.low { background-color: #4caf50; }
-        .capacity-fill.medium { background-color: #ffeb3b; }
-        .capacity-fill.high { background-color: #f44336; }
+        .occupancy-fill.medium { background: #ffc107; }
+        .occupancy-fill.high { background: #ff5252; }
 
-        .no-data {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #555;
-            font-size: 1.5rem;
+        .arrivals-row.placeholder {
+            grid-template-columns: 95px 1fr;
         }
 
-        .no-data .icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
+        .arrivals-row.placeholder .placeholder-message {
+            color: #ff9800;
+            font-size: 2.08rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(255,152,0,0.45);
         }
 
         .panel-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 10px 0 0;
             border-top: 2px solid #333;
-            margin-top: 10px;
-        }
-
-        .footer-info {
-            color: #555;
-            font-size: 0.75rem;
+            margin-top: 8px;
+            color: #777;
+            font-size: 0.78rem;
             letter-spacing: 1px;
-        }
-
-        footer-brand {
-            color: #555;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
         }
 
         .btn-back {
@@ -245,58 +229,17 @@
             transition: opacity 0.3s;
         }
 
-        .btn-back:hover{
+        .btn-back:hover {
             opacity: 1;
-            background: rgba(255, 152, 0, 0.15);
+            background: rgba(255,152,0,0.15);
             cursor: default;
         }
 
         .btn-back::after {
-            content: '←';
-            color: #ff9800;
-            font-size: 0.7rem;
-            font-family: 'Share Tech Mono', monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .blink {
-            animation: blink 1.5s ease-in-out infinite;
-        }
-
-        .scroll-banner {
-            background: #1a1a1a;
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #333;
-            padding: 10px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            margin: 10px 0;
-        }
-
-        .scroll-text {
-            display: inline-block;
+            content: '<';
             color: #ff9800;
             font-size: 1rem;
-            letter-spacing: 2px;
-            animation: scroll 30s linear infinite;
-        }
-
-        @keyframes scrollText {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            font-family: 'Share Tech Mono', monospace;
         }
 
         .update-indicator {
@@ -311,13 +254,19 @@
             transition: background 0.3s;
         }
 
-        .update-indicator.updating {
-            background: #ffc107;
-            animation: blink 0.5s ease-in-out;
+        .update-indicator.updating { background: #ffc107; }
+        .update-indicator.error { background: #f44336; }
+
+        .blink { animation: blink 1.2s ease-in-out infinite; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .update-indicator.error {
-            background: #f44336;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
         }
     </style>
 </head>
@@ -326,37 +275,28 @@
     <div class="led-panel">
         <div class="panel-header">
             <div class="header-left">
-                <span class="header-title">Destinos</span>
+                <span class="header-title">Painel</span>
                 <span class="header-brand">TUB</span>
-         </div>
+            </div>
             <div class="header-right">
                 <div class="header-time" id="clock">--:--</div>
-                <div class="header-stop" id="stop-name">A carregar...</div>
+                <div class="header-stop" id="stop-name">--</div>
             </div>
         </div>
-    
 
         <div class="table-header">
-            <span>Código</span>
+            <span>Rota</span>
             <span>Destino</span>
-            <span>Capacidade</span>
-            <span style="text-align:right">Min.</span>
+            <span>Chegada</span>
+            <span>Passageiros</span>
+            <span>Lotacao</span>
         </div>
 
-        <div class="scroll-banner" id="scroll-banner" style="display:none;">
-            <span class="scroll-text" id="scroll-text"></span>
-        </div>
-
-        <div class="arrivals-container" id="arrivals-container">
-            <div class="no-data">
-                <div class="icon">🚍</div>
-                A carregar dados...
-            </div>
-        </div>
+        <div class="arrivals-container" id="arrivals-container"></div>
 
         <div class="panel-footer">
-            <span class="footer-info" id="last-update">Última atualização: --:--</span>
-            <span class="footer-brand">Powered by <strong>ami</strong></span>
+            <span id="last-update">Ultima atualizacao: --:--</span>
+            <span id="panel-route-summary">TUB</span>
         </div>
     </div>
 
@@ -364,17 +304,18 @@
 
     <script>
         const API_BASE = window.location.origin;
+        const MAX_OCCUPANCY = 55;
         const params = new URLSearchParams(window.location.search);
         const panelId = params.get('id');
 
-        if(!panelId) {
-            document.getElementById('arrivals-container').innerHTML = `
-                <div class="no-data">
-                    <div class="icon">⚠️</div>
-                    Painel inválido. ID ausente.
-                </div>
-            `;
-        } 
+        if (!panelId) {
+            document.getElementById('arrivals-container').innerHTML = renderPlaceholderRow(0, 0, {
+                routeCode: '--',
+                destination: 'Painel invalido',
+                routeName: 'ID ausente',
+                etaText: '--'
+            });
+        }
 
         function voltarMenu() {
             window.location.href = 'paineis-login.html';
@@ -382,112 +323,124 @@
 
         function updateClock() {
             const now = new Date();
-            const hh = String(now.getHours()).padStart(2, '0');
-            const mm = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('clock').textContent = hh + ':' + mm;
+            document.getElementById('clock').textContent =
+                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         }
         setInterval(updateClock, 1000);
         updateClock();
 
         document.addEventListener('keydown', (e) => {
-            if(e.key === 'Escape') {
-                voltarMenu();
-            }
+            if (e.key === 'Escape') voltarMenu();
         });
 
         async function loadPanelData() {
-            if(!panelId) return;
+            if (!panelId) return;
             const indicator = document.getElementById('update-indicator');
             indicator.className = 'update-indicator updating';
+
             try {
                 const response = await fetch(`${API_BASE}/api/panels/${panelId}/realtime`);
-                if(!response.ok) throw new Error('Erro ao carregar dados');
-                const data = await response.json();
-                atualizarPainel(data);
+                if (!response.ok) throw new Error('Erro ao carregar dados');
+                renderPainelData(await response.json());
                 indicator.className = 'update-indicator';
+
                 const now = new Date();
-                document.getElementById('last-update').textContent = `Última atualização: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            }catch(err){
-                console.error('Erro ao carregar dados: ', err);
+                document.getElementById('last-update').textContent =
+                    `Ultima atualizacao: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            } catch (err) {
+                console.error('Erro ao carregar dados:', err);
                 indicator.className = 'update-indicator error';
             }
         }
 
-        function renderPainelData(data){
-            document.getElementById('stop-name').textContent = data.stopName || 'Paragem Desconecida';
+        function renderPainelData(data) {
+            document.getElementById('stop-name').textContent = data.stopName || '--';
 
-            const container = document.getElementById('arrivals-container');
             const arrivals = data.arrivals || [];
+            const container = document.getElementById('arrivals-container');
 
-            if(arrivals.length === 0){
-                container.innerHTML = `
-                    <div class="no-data">
-                        <div class="icon">⚠️</div>
-                        Sem veículos previstos.
-                    </div>
-                    <div style= "font-size: 0.9rem; margin-top: 8px; opacity: 0.5">Aguarde atualização...</div>
-                `;
+            if (arrivals.length === 0) {
+                container.innerHTML = renderPlaceholderRow(0, 0, {
+                    routeCode: '--',
+                    destination: 'Sem previsao',
+                    routeName: 'Nenhum autocarro nos proximos 15 min',
+                    etaText: '--'
+                });
+                document.getElementById('panel-route-summary').textContent = 'Sem autocarros nos proximos 15 min';
                 return;
             }
 
             container.innerHTML = '';
+            document.getElementById('panel-route-summary').textContent = arrivals.length === 1 ? '1 rota nesta paragem' : `${arrivals.length} rotas nesta paragem`;
+
             arrivals.forEach((arrival, index) => {
                 const row = document.createElement('div');
-                row.className='arrivals-row';
-                row.style.animationDelay = `${index * 0.1}s`;
+                row.className = 'arrivals-row';
+                row.style.animationDelay = `${index * 0.05}s`;
 
-                const capacity = arrival.capacity || 0;
-                const occupancy = arrival.currentOccupancy || 0;
-                const occupancyPct = capacity > 0 ? Math.min((occupancy / capacity) * 100, 100) : 0;
+                const etaText = arrival.etaMinutes != null ? `${arrival.etaMinutes} min` : '--';
+                const etaClass = arrival.etaMinutes != null && arrival.etaMinutes <= 2 ? 'blink' : '';
+                const destination = arrival.routeDestination || arrival.routeDescription || arrival.routeName || 'Destino Desconhecido';
+                const routeName = arrival.routeName || arrival.arrivalTime || 'Rota TUB';
+                const passengerCounts = arrival.passengerCounts || {};
+                const maxOccupancy = Number(passengerCounts.maxOccupancy || arrival.capacity || MAX_OCCUPANCY);
+                const currentOccupancy = Math.max(0, Math.min(maxOccupancy, Number(passengerCounts.currentOccupancy || arrival.currentOccupancy || 0)));
+                const occupancyPercentage = Math.round((currentOccupancy / maxOccupancy) * 100);
 
-                let capacityClass = 'low';
-                if(occupancyPct > 80) capacityClass = 'high';
-                else if(occupancyPct > 40) capacityClass = 'medium';
-
-                const occupancyText = capacity > 0 ? `${occupancy}/${capacity}` : '--';
-                
-                const etaText = arrival.etaMinutes !== undefined ? `${arrival.etaMinutes} min` : '--';
-                const etaClass = arrival.etaMinutes <= 2 ? 'blink' : '';
-
-                row.innerHTML = `
-                    <div class="route-code">${arrival.routeCode || '--'}</div>
-                    <div class="destination">${(arrival.routeDescription || 'Destino Desconecido').toUpperCase()}</div>
-                    <div class="capacity">
-                        <div>
-                            <div>${occupancyText}</div>
-                            <div class="capacity-bar">
-                                <div class="capacity-fill ${capacityClass}" style="width: ${occupancyPct}%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="eta ${etaClass}">${etaText}</div>
-                `;
+                row.innerHTML = renderRow(
+                    arrival.routeCode || '--',
+                    destination,
+                    routeName,
+                    etaText,
+                    etaClass,
+                    currentOccupancy,
+                    occupancyPercentage,
+                    maxOccupancy
+                );
                 container.appendChild(row);
             });
         }
 
-        async function loadMassages() {
-            if(!panelID) return;
-            try {
-                const response = await fetch(`${API_BASE}/api/panels/${panelId}/messages`);
-                if(!response.ok) {
-                    const messages = await response.json();
-                    if(messages.length > 0){
-                        const banner = document.getElementById('scroll-banner');
-                        const text = document.getElementById('scroll-text');
-                        const msgText = msgText;
-                        banner.style.display='block';
-                    }
-                }
-            }catch(err){
-                console.error('Erro ao carregar mensagens: ', err);
-            }
+        function renderRow(routeCode, destination, routeName, etaText, etaClass, currentOccupancy, occupancyPercentage, maxOccupancy = MAX_OCCUPANCY) {
+            const occupancyClass = occupancyPercentage >= 85 ? 'high' : occupancyPercentage >= 60 ? 'medium' : '';
+            return `
+                <div class="route-code">${routeCode}</div>
+                <div>
+                    <div class="destination">${String(destination).toUpperCase()}</div>
+                    <div class="route-name">${routeName}</div>
+                </div>
+                <div class="eta ${etaClass}">${etaText}</div>
+                <div class="passenger-count">${currentOccupancy}/${maxOccupancy}</div>
+                <div class="occupancy-percent">
+                    ${occupancyPercentage}%
+                    <div class="occupancy-meter">
+                        <div class="occupancy-fill ${occupancyClass}" style="width:${occupancyPercentage}%;"></div>
+                    </div>
+                </div>
+            `;
         }
-        
+
+        function renderPlaceholderRow(currentOccupancy, occupancyPercentage, info) {
+            return `
+                <div class="arrivals-row placeholder">
+                    <div class="route-code">${info.routeCode}</div>
+                    <div>
+                        <div class="placeholder-message">${String(info.destination).toUpperCase()}</div>
+                        <div class="route-name">${info.routeName}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildRouteName(route) {
+            if (route.origin && route.destination) return `${route.origin} -> ${route.destination}`;
+            if (route.origin) return route.origin;
+            if (route.destination) return route.destination;
+            return '--';
+        }
+
         loadPanelData();
-        loadMassages();
         setInterval(loadPanelData, 15000);
-        setInterval(loadMassages, 60000);
 
         let cursorTimeout;
         document.addEventListener('mousemove', () => {
