@@ -79,23 +79,33 @@
             border-color: #ffc107;
         }
 
-        .painel-login-container .btn-painel-login {
-            width: 100%;
-            padding: 14px;
-            background: #ffc107;
-            color: #1a1a2e;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.3s; transform: 0.1s;
+        .panel-login-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            margin-top: 1.2rem;
         }
 
-        .panel-login-container .btn-panel-lofin:hover {
-            background: #ffb300;
+        .panel-login-container .btn-panel-login {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: linear-gradient(135deg, #ffc107 0%, #f5a623 100%);
+            color: #111827;
+            border: 1px solid rgba(255, 193, 7, 0.65);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(255, 193, 7, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .panel-login-container .btn-panel-login:hover {
             transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 14px 30px rgba(255, 193, 7, 0.28);
         }
 
         .panel-login-container .btn-panel-login:active {
@@ -113,7 +123,7 @@
             color: #888;
             text-decoration: none;
             font-size: 0.9rem;
-            margin-top: 20px;
+            margin-top: 0;
             display: inline-block;
         }
 
@@ -137,11 +147,12 @@
             <input type="password" id="password" placeholder="Introduza a sua palavra-passe">
         </div>
 
-        <button class="btn-panel-login" onclick="fazerLogin()">Entrar</button>
+        <div class="panel-login-actions">
+            <button class="btn-panel-login" onclick="fazerLogin()">Entrar</button>
+            <a href="index.html" class="back-link">Voltar à Página Inicial</a>
+        </div>
 
         <div id="error-msg" class="error-msg">Credenciais inválidas. Tente novamente.</div>
-
-        <a href="index.html" class="back-link">Voltar à Página Inicial</a>
     </div>
 
     <script>
