@@ -2,18 +2,22 @@ package dai.boot.projeto.controller;
 
 import dai.boot.projeto.entities.InformationPanel;
 import dai.boot.projeto.entities.Route;
+import dai.boot.projeto.entities.Stop;
 import dai.boot.projeto.repository.InformationPanelRepository;
 import dai.boot.projeto.repository.RouteRepository;
+import dai.boot.projeto.service.PanelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/panels")
+@CrossOrigin(origins = "*")
 public class PanelController {
 
     @Autowired
@@ -25,6 +29,9 @@ public class PanelController {
     @Autowired
     private dai.boot.projeto.repository.PanelMessageRepository panelMessageRepository;
 
+    @Autowired
+    private PanelService panelService;
+
     @GetMapping
     public List<InformationPanel> getAllPanels() {
         return panelRepository.findAll();
@@ -33,7 +40,6 @@ public class PanelController {
     @PostMapping
     public ResponseEntity<InformationPanel> createPanel(@RequestBody InformationPanel panel) {
         try {
-            // Se houver um routeId no request, validar se existe
             if (panel.getRoute() != null && panel.getRoute().getId() != null) {
                 Optional<Route> route = routeRepository.findById(panel.getRoute().getId());
                 if (route.isPresent()) {
@@ -46,6 +52,19 @@ public class PanelController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPanel);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createPanelSimple(@RequestBody Map<String, Object> request){
+        try{
+            String name= (String) request.get("name");
+            Long stopId = Long.valueOf(request.get("stopId").toString());
+
+            InformationPanel panel = panelService.createPanel(name, stopId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(panel);
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -97,6 +116,41 @@ public class PanelController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePanel(@PathVariable Long id){
+        try{
+            panelService.deletePanel(id);
+            return ResponseEntity.ok(Map.of("message", "Painel Eliminado com Sucesso!"));
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/realtime")
+    public ResponseEntity<?> getPanelRealTimeInfo(@PathVariable Long id){
+        try{
+            Map<String, Object> info = panelService.getPanelRealTimeInfo(id);
+            return ResponseEntity.ok(info);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/stop/{stopId}/realtime")
+    public ResponseEntity<?> getStopPanelsRealTimeInfo(@PathVariable Long stopId){
+        try{
+            Map<String, Object> info = panelService.getStopPanelsRealTimeInfo(stopId);
+            return ResponseEntity.ok(info);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/stops")
+    public ResponseEntity<List<Stop>> getAllStops() {
+        return ResponseEntity.ok(panelService.getAllStops());
     }
 
     @PostMapping("/{id}/simulate-failure")

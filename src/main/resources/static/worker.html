@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Trabalhador - Enviar Alarmes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="worker.html">Início</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="worker-section" style="margin-top: 100px; padding: 2rem;">
+        <div class="container">
+            <div class="card-full">
+                <h2 style="font-family: var(--font-display); color: var(--amber); font-size: 2rem; margin-bottom: 1rem;">
+                    ✉️ Enviar Alarme
+                </h2>
+                <p style="color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem;">
+                    Preenche os detalhes do alarme para notificar o supervisor.
+                </p>
+
+                <form id="alarme-form" style="background: var(--navy-light); padding: 2rem; border-radius: 12px; border: 1px solid rgba(245, 166, 35, 0.15);">
+                    
+                    <!-- Tipo do Alarme -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--white);">
+                            Tipo do Alarme
+                        </label>
+                        <select id="tipo-alarme" required style="
+                            width: 100%; padding: 0.75rem 1rem;
+                            background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 8px; color: var(--white); font-family: var(--font-body);
+                            font-size: 0.95rem; outline: none;
+                            transition: border-color var(--transition);
+                        " onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                            <option value="">-- Seleciona um tipo --</option>
+                        </select>
+                    </div>
+
+                    <!-- Gravidade -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--white);">
+                            Gravidade
+                        </label>
+                        <select id="gravidade-alarme" required style="
+                            width: 100%; padding: 0.75rem 1rem;
+                            background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 8px; color: var(--white); font-family: var(--font-body);
+                            font-size: 0.95rem; outline: none;
+                            transition: border-color var(--transition);
+                        " onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                            <option value="">-- Seleciona a gravidade --</option>
+                        </select>
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--white);">
+                            Descrição Detalhada
+                        </label>
+                        <textarea id="descricao-alarme" placeholder="Descreve o problema de forma detalhada..." style="
+                            width: 100%; min-height: 120px; padding: 0.75rem 1rem;
+                            background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 8px; color: var(--white); font-family: var(--font-body);
+                            font-size: 0.95rem; outline: none; resize: vertical;
+                            transition: border-color var(--transition);
+                        " onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'"></textarea>
+                    </div>
+
+                    <button type="submit" style="
+                        background: var(--amber); color: var(--navy); border: none;
+                        padding: 0.8rem 1.6rem; border-radius: 8px;
+                        font-family: var(--font-display); font-weight: 700;
+                        font-size: 0.95rem; letter-spacing: 0.05em;
+                        text-transform: uppercase; cursor: pointer;
+                        transition: all var(--transition);
+                    " onmouseover="this.style.background='var(--amber-dark)'; this.style.boxShadow='0 4px 16px rgba(245, 166, 35, 0.3)'" onmouseout="this.style.background='var(--amber)'; this.style.boxShadow='none'">
+                        📨 Enviar Alarme
+                    </button>
+                </form>
+
+                <div id="sucesso-msg" style="
+                    display: none; margin-top: 1.5rem;
+                    background: rgba(46, 204, 113, 0.1); border: 1px solid var(--success);
+                    border-radius: 8px; padding: 1rem; color: var(--success);
+                    font-weight: 600;
+                "></div>
+
+                <div id="erro-msg" style="
+                    display: none; margin-top: 1.5rem;
+                    background: rgba(231, 76, 60, 0.1); border: 1px solid var(--danger);
+                    border-radius: 8px; padding: 1rem; color: var(--danger);
+                    font-weight: 600;
+                "></div>
+
+                <div id="alertas-aprovados-secao" style="margin-top: 2rem;">
+                    <h3 style="font-family: var(--font-display); color: var(--amber); font-size: 1.4rem; margin-bottom: 1rem;">
+                        🚚 Alarmes aprovados para ti
+                    </h3>
+                    <div id="alertas-aprovados-container" style="display: grid; gap: 1rem;">
+                        <div style="text-align: center; color: var(--muted); padding: 1.5rem;">
+                            A carregar alarmes aprovados...
+                        </div>
+                    </div>
+                </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'WORKER') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const navLogout = document.getElementById('nav-logout');
+            if (navLogout) navLogout.style.display = 'inline-block';
+
+            await carregarOpcoesAlarmes();
+            await carregarAlertasAprovados();
+            setInterval(carregarAlertasAprovados, 10000);
+
+            document.getElementById('alarme-form').addEventListener('submit', enviarAlarme);
+        });
+
+        async function carregarAlertasAprovados() {
+            try {
+                const resposta = await fetch('/api/alerts/worker');
+                const container = document.getElementById('alertas-aprovados-container');
+                container.innerHTML = '';
+
+                if (!resposta.ok) {
+                    container.innerHTML = '<div style="text-align:center;color:var(--danger);padding:1.5rem;">Não foi possível carregar os alarmes aprovados.</div>';
+                    return;
+                }
+
+                const alertas = await resposta.json();
+                if (!alertas || alertas.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:1.5rem;">Ainda não há alarmes aprovados pelo supervisor.</div>';
+                    return;
+                }
+
+                alertas.forEach(alarme => {
+                    const card = document.createElement('div');
+                    card.style.background = 'rgba(255,255,255,0.06)';
+                    card.style.border = '1px solid rgba(255,255,255,0.08)';
+                    card.style.borderRadius = '14px';
+                    card.style.padding = '1.5rem';
+                    card.style.display = 'grid';
+                    card.style.gap = '0.75rem';
+
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; gap:1rem; align-items:center;">
+                            <span style="font-weight:700; color:var(--white);">${alarme.type}</span>
+                            <span style="color:var(--success); font-weight:700;">${alarme.status}</span>
+                        </div>
+                        <div style="color:var(--muted);">${alarme.description || 'Sem descrição adicional.'}</div>
+                        <div style="display:grid; gap:0.5rem; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px;">
+                            <strong style="color:var(--amber);">Ação recomendada:</strong>
+                            <p style="margin:0; color: var(--white);">${alarme.recommendedActions || 'Não foi definida ação recomendada.'}</p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (erro) {
+                console.error('Erro ao carregar alarmes aprovados:', erro);
+                const container = document.getElementById('alertas-aprovados-container');
+                container.innerHTML = '<div style="text-align:center;color:var(--danger);padding:1.5rem;">Erro ao carregar os alarmes aprovados.</div>';
+            }
+        }
+
+        async function carregarOpcoesAlarmes() {
+            try {
+                const resposta = await fetch('/api/alerts/options');
+                if (resposta.ok) {
+                    const opcoes = await resposta.json();
+                    
+                    const selectTipo = document.getElementById('tipo-alarme');
+                    if (opcoes.tipos) {
+                        opcoes.tipos.forEach(tipo => {
+                            const option = document.createElement('option');
+                            option.value = tipo;
+                            option.textContent = tipo;
+                            selectTipo.appendChild(option);
+                        });
+                    }
+
+                    const selectGravidade = document.getElementById('gravidade-alarme');
+                    if (opcoes.gravidades) {
+                        opcoes.gravidades.forEach(grav => {
+                            const option = document.createElement('option');
+                            option.value = grav;
+                            option.textContent = grav;
+                            selectGravidade.appendChild(option);
+                        });
+                    }
+                }
+            } catch (erro) {
+                console.error("Erro ao carregar opções de alarmes:", erro);
+            }
+        }
+
+        async function enviarAlarme(e) {
+            e.preventDefault();
+
+            const tipo = document.getElementById('tipo-alarme').value;
+            const gravidade = document.getElementById('gravidade-alarme').value;
+            const descricao = document.getElementById('descricao-alarme').value;
+
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            const utilizador = JSON.parse(utilizadorGuardado);
+
+            if (!tipo || !gravidade || !descricao.trim()) {
+                mostrarErro('Por favor, preenche todos os campos.');
+                return;
+            }
+
+            try {
+                const alarme = {
+                    type: tipo,
+                    severity: gravidade,
+                    status: 'ACTIVE',
+                    description: descricao,
+                    source: 'WORKER',
+                    createdBy: utilizador.username
+                };
+
+                const resposta = await fetch('/api/alerts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alarme)
+                });
+
+                if (resposta.ok) {
+                    mostrarSucesso('Alarme enviado com sucesso! O supervisor será notificado.');
+                    document.getElementById('alarme-form').reset();
+                    await carregarAlertasAprovados();
+                    setTimeout(() => {
+                        document.getElementById('sucesso-msg').style.display = 'none';
+                    }, 5000);
+                } else {
+                    mostrarErro('Erro ao enviar o alarme. Tenta novamente.');
+                }
+            } catch (erro) {
+                console.error("Erro ao enviar alarme:", erro);
+                mostrarErro('Erro de ligação ao servidor.');
+            }
+        }
+
+        function mostrarSucesso(msg) {
+            const div = document.getElementById('sucesso-msg');
+            div.textContent = '✓ ' + msg;
+            div.style.display = 'block';
+            document.getElementById('erro-msg').style.display = 'none';
+        }
+
+        function mostrarErro(msg) {
+            const div = document.getElementById('erro-msg');
+            div.textContent = '✗ ' + msg;
+            div.style.display = 'block';
+            document.getElementById('sucesso-msg').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

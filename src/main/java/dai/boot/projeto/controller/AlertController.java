@@ -11,6 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/alerts")
+@CrossOrigin(origins = "*")
 public class AlertController {
 
     @Autowired
@@ -80,5 +81,25 @@ public class AlertController {
     @GetMapping("/history")
     public List<Alert> getHistory() {
         return alertRepository.findAll();
+    }
+
+    // Opções disponíveis para criar um alerta
+    @GetMapping("/options")
+    public Map<String, Object> getOptions() {
+        return alertService.getAlertOptions();
+    }
+
+    // Supervisor atualiza estado e ações do alerta
+    @PostMapping("/{id}/update-state-and-actions")
+    public Alert updateStateAndActions(
+            @PathVariable Long id,
+            @RequestBody AlertStateUpdateRequest request) {
+        return alertService.updateAlertStateAndActions(id, request.getNewStatus(), request.getRecommendedActionsJson(), request.getUsername());
+    }
+
+    // Alarmes aprovados para o trabalhador ver
+    @GetMapping("/worker")
+    public List<Alert> getWorkerAlerts() {
+        return alertService.getWorkerAlerts();
     }
 }

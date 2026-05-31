@@ -2,6 +2,7 @@ package dai.boot.projeto.controller;
 
 import dai.boot.projeto.entities.Stop;
 import dai.boot.projeto.repository.StopRepository;
+import dai.boot.projeto.repository.VehicleRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,11 @@ import java.util.Optional;
 public class MapController {
 
     private final StopRepository stopRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public MapController(StopRepository stopRepository) {
+    public MapController(StopRepository stopRepository, VehicleRepository vehicleRepository) {
         this.stopRepository = stopRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     @GetMapping
@@ -53,5 +56,15 @@ public class MapController {
 
         stopRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/vehicles")
+    public ResponseEntity<List<?>> getVehiclesByStop(@PathVariable Long id) {
+        Optional<Stop> stopOpt = stopRepository.findById(id);
+        if (stopOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Stop stop = stopOpt.get();
+        List<?> vehicles = vehicleRepository.findByRouteStopsContaining(stop.getName());
+        return ResponseEntity.ok(vehicles);
     }
 }

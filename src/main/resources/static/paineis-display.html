@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paineis de Informacao</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #000;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: none;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+        }
+
+        .led-panel {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 28px 16px;
+            background: linear-gradient(180deg, #050505 0%, #101010 100%);
+            color: #ffb347;
+            position: relative;
+        }
+
+        .led-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.65) 2px, rgba(0,0,0,0.65) 4px);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            padding: 8px 0 16px;
+            border-bottom: 3px solid #ff9800;
+            margin-bottom: 14px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .header-title,
+        .header-brand {
+            color: #ff9800;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255,152,0,0.45);
+        }
+
+        .header-title { display: none; }
+        .header-brand { font-size: 1.8rem; letter-spacing: 4px; }
+
+        .header-right {
+            text-align: right;
+            min-width: 220px;
+        }
+
+        .header-time {
+            color: #ff9800;
+            font-size: 2.1rem;
+            text-shadow: 0 0 10px rgba(255,152,0,0.6);
+        }
+
+        .header-stop {
+            color: #ffb347;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+
+        .table-header,
+        .arrivals-row {
+            display: grid;
+            grid-template-columns: 95px minmax(220px, 1fr) 145px 185px 160px;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .table-header {
+            padding: 12px 18px;
+            border: 2px solid #2a2a2a;
+            background: #141414;
+            margin-bottom: 8px;
+        }
+
+        .table-header span {
+            color: #ffcc80;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-header span:nth-child(3),
+        .table-header span:nth-child(4),
+        .table-header span:nth-child(5) {
+            text-align: right;
+        }
+
+        .arrivals-container {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .arrivals-row {
+            min-height: 92px;
+            padding: 18px;
+            margin-bottom: 8px;
+            border: 2px solid #222;
+            background: #101010;
+            animation: fadeIn 0.35s ease both;
+        }
+
+        .route-code {
+            color: #ffc107;
+            font-size: 2.45rem;
+            font-weight: 700;
+            line-height: 1;
+            text-shadow: 0 0 14px rgba(255,193,7,0.7);
+        }
+
+        .destination {
+            color: #ff9800;
+            font-size: 2.08rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 0 12px rgba(255,152,0,0.45);
+        }
+
+        .route-name {
+            color: #8f8f8f;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .eta,
+        .passenger-count,
+        .occupancy-percent {
+            color: #f5f5f5;
+            font-size: 1.8rem;
+            text-align: right;
+            text-shadow: 0 0 8px rgba(255,255,255,0.22);
+        }
+
+        .eta {
+            color: #ffc107;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(255,193,7,0.45);
+        }
+
+        .occupancy-meter {
+            height: 10px;
+            margin-top: 10px;
+            border: 1px solid #333;
+            background: #050505;
+            overflow: hidden;
+        }
+
+        .occupancy-fill {
+            height: 100%;
+            width: 0;
+            background: #4caf50;
+        }
+
+        .occupancy-fill.medium { background: #ffc107; }
+        .occupancy-fill.high { background: #ff5252; }
+
+        .panel-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 0;
+            border-top: 2px solid #333;
+            margin-top: 8px;
+            color: #777;
+            font-size: 0.78rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-back {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-back:hover {
+            opacity: 1;
+            background: rgba(255,152,0,0.15);
+            cursor: default;
+        }
+
+        .btn-back::after {
+            content: '<';
+            color: #ff9800;
+            font-size: 1rem;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .update-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            z-index: 50;
+            transition: background 0.3s;
+        }
+
+        .update-indicator.updating { background: #ffc107; }
+        .update-indicator.error { background: #f44336; }
+
+        .blink { animation: blink 1.2s ease-in-out infinite; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+    </style>
+</head>
+<body>
+    <button class="btn-back" onclick="voltarMenu()" title="Voltar ao Menu"></button>
+    <div class="led-panel">
+        <div class="panel-header">
+            <div class="header-left">
+                <span class="header-title">Painel</span>
+                <span class="header-brand">TUB</span>
+            </div>
+            <div class="header-right">
+                <div class="header-time" id="clock">--:--</div>
+                <div class="header-stop" id="stop-name">--</div>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <span>Rota</span>
+            <span>Destino</span>
+            <span>Chegada</span>
+            <span>Passageiros</span>
+            <span>Lotacao</span>
+        </div>
+
+        <div class="arrivals-container" id="arrivals-container"></div>
+
+        <div class="panel-footer">
+            <span id="last-update">Ultima atualizacao: --:--</span>
+            <span id="panel-route-summary">TUB</span>
+        </div>
+    </div>
+
+    <div class="update-indicator" id="update-indicator"></div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const MAX_OCCUPANCY = 55;
+        const params = new URLSearchParams(window.location.search);
+        const panelId = params.get('id');
+
+        if (!panelId) {
+            document.getElementById('arrivals-container').innerHTML = renderPlaceholderRow(0, 0, {
+                routeCode: '--',
+                destination: 'Painel invalido',
+                routeName: 'ID ausente',
+                etaText: '--'
+            });
+        }
+
+        function voltarMenu() {
+            window.location.href = 'paineis-login.html';
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent =
+                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') voltarMenu();
+        });
+
+        async function loadPanelData() {
+            if (!panelId) return;
+            const indicator = document.getElementById('update-indicator');
+            indicator.className = 'update-indicator updating';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/panels/${panelId}/realtime`);
+                if (!response.ok) throw new Error('Erro ao carregar dados');
+                renderPainelData(await response.json());
+                indicator.className = 'update-indicator';
+
+                const now = new Date();
+                document.getElementById('last-update').textContent =
+                    `Ultima atualizacao: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            } catch (err) {
+                console.error('Erro ao carregar dados:', err);
+                indicator.className = 'update-indicator error';
+            }
+        }
+
+        function renderPainelData(data) {
+            document.getElementById('stop-name').textContent = data.stopName || '--';
+
+            const passengerCounts = data.passengerCounts || {};
+            const currentOccupancy = Math.max(0, Math.min(MAX_OCCUPANCY, Number(passengerCounts.currentOccupancy || 0)));
+            const occupancyPercentage = Math.round((currentOccupancy / MAX_OCCUPANCY) * 100);
+
+            const arrivals = (data.arrivals || []).slice(0, 1);
+            const container = document.getElementById('arrivals-container');
+
+            if (arrivals.length === 0) {
+                const assignedRoute = data.assignedRoute || {};
+                container.innerHTML = renderPlaceholderRow(currentOccupancy, occupancyPercentage, {
+                    routeCode: assignedRoute.code || '--',
+                    destination: assignedRoute.destination || '--',
+                    routeName: buildRouteName(assignedRoute),
+                    etaText: '--'
+                });
+                document.getElementById('panel-route-summary').textContent = assignedRoute.code ? 'Rota atribuida' : 'Sem rota atribuida';
+                return;
+            }
+
+            container.innerHTML = '';
+            document.getElementById('panel-route-summary').textContent = arrivals[0].source === 'assignedRoute' ? 'Rota atribuida' : 'Proxima chegada';
+
+            arrivals.forEach((arrival, index) => {
+                const row = document.createElement('div');
+                row.className = 'arrivals-row';
+                row.style.animationDelay = `${index * 0.05}s`;
+
+                const etaText = arrival.etaMinutes !== undefined ? `${arrival.etaMinutes} min` : '--';
+                const etaClass = arrival.etaMinutes <= 2 ? 'blink' : '';
+                const destination = arrival.routeDestination || arrival.routeDescription || arrival.routeName || 'Destino Desconhecido';
+                const routeName = arrival.routeName || arrival.arrivalTime || 'Rota TUB';
+
+                row.innerHTML = renderRow(
+                    arrival.routeCode || '--',
+                    destination,
+                    routeName,
+                    etaText,
+                    etaClass,
+                    currentOccupancy,
+                    occupancyPercentage
+                );
+                container.appendChild(row);
+            });
+        }
+
+        function renderRow(routeCode, destination, routeName, etaText, etaClass, currentOccupancy, occupancyPercentage) {
+            const occupancyClass = occupancyPercentage >= 85 ? 'high' : occupancyPercentage >= 60 ? 'medium' : '';
+            return `
+                <div class="route-code">${routeCode}</div>
+                <div>
+                    <div class="destination">${String(destination).toUpperCase()}</div>
+                    <div class="route-name">${routeName}</div>
+                </div>
+                <div class="eta ${etaClass}">${etaText}</div>
+                <div class="passenger-count">${currentOccupancy}/${MAX_OCCUPANCY}</div>
+                <div class="occupancy-percent">
+                    ${occupancyPercentage}%
+                    <div class="occupancy-meter">
+                        <div class="occupancy-fill ${occupancyClass}" style="width:${occupancyPercentage}%;"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPlaceholderRow(currentOccupancy, occupancyPercentage, info) {
+            return `
+                <div class="arrivals-row">
+                    ${renderRow(info.routeCode, info.destination, info.routeName, info.etaText, '', currentOccupancy, occupancyPercentage)}
+                </div>
+            `;
+        }
+
+        function buildRouteName(route) {
+            if (route.origin && route.destination) return `${route.origin} -> ${route.destination}`;
+            if (route.origin) return route.origin;
+            if (route.destination) return route.destination;
+            return '--';
+        }
+
+        loadPanelData();
+        setInterval(loadPanelData, 15000);
+
+        let cursorTimeout;
+        document.addEventListener('mousemove', () => {
+            document.body.style.cursor = 'default';
+            clearTimeout(cursorTimeout);
+            cursorTimeout = setTimeout(() => {
+                document.body.style.cursor = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB - Paineís de Informação - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .panel-login-container {
+            background: #16213e;
+            border: 1px solid rgba(255, 193, 7, 0.18);
+            border-radius: 12px;
+            padding: 40px 50px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .panel-login-container img.logo {
+            width: 120px;
+            margin-bottom: 20px;
+        }
+
+        .panel-login-container h1 {
+            color: #e0e0e0;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .panel-login-container h2 {
+            color: #ffc107;
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+
+        .panel-login-container .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .panel-login-container label{
+            color: #aaa;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .panel-login-container input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #2a2a4a;
+            border-radius: 8px;
+            background: #0f0f23;
+            color: #e0e0e0;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .panel-login-container input:focus {
+            outline:none;
+            border-color: #ffc107;
+        }
+
+        .panel-login.container input:focus{
+            outline: none;
+            border-color: #ffc107;
+        }
+
+        .panel-login-container .btn-panel-login {
+            width: 100%;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 8px 22px rgba(255, 193, 7, 0.25);
+            letter-spacing: 0.02em;
+            transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        }
+
+        .panel-login-container .btn-panel-login:hover {
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(255, 193, 7, 0.34);
+        }
+
+        .panel-login-container .btn-panel-login:active {
+            transform: translateY(0);
+        }
+
+        .error-msg{
+            color: #ff5252;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .back-link {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .back-link:hover {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel-login-container">
+        <img src="transferir.png" class="logo" alt="Logo TUB">
+        <h1> Painéis de Informação</h1>
+        <h2> Acesso ao Sistema de Painéis</h2>
+
+        <div class="form-group">
+            <label for="username">Nome de Utilizador</label>
+            <input type="text" id="username" placeholder="Introduza o seu nome de utilizador" autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password">Palavra-Passe</label>
+            <input type="password" id="password" placeholder="Introduza a sua palavra-passe">
+        </div>
+
+        <button class="btn-panel-login" onclick="fazerLogin()">Entrar</button>
+
+        <div id="error-msg" class="error-msg">Credenciais inválidas. Tente novamente.</div>
+
+        <a href="index.html" class="back-link">Voltar à Página Inicial</a>
+    </div>
+
+    <script>
+        const API_BASE=window.location.origin;
+
+        if(sessionStorage.getItem('panelToken')){
+            window.location.href = 'paineis-menu.html';
+        }
+
+        document.getElementById('password').addEventListener('keypress', function(e){
+            if(e.key === 'Enter'){
+                fazerLogin();
+            }
+        });
+        document.getElementById('username').addEventListener('keypress', function(e){
+            if(e.key === 'Enter'){
+                fazerLogin();
+            }
+        });
+
+        async function fazerLogin(){
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('error-msg');
+
+            if(!username || !password){
+                errorDiv.textContent = 'Por favor, preencha ambos os campos.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try{
+                const response = await fetch(`${API_BASE}/api/auth/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
+                    method: 'POST'
+                });
+
+                if(response.ok){
+                    const token = await response.text();
+                    sessionStorage.setItem('panelToken', token);
+                    sessionStorage.setItem('panelUser', username);
+                    window.location.href = 'paineis-menu.html';
+                }else{
+                    errorDiv.textContent = 'Credenciais inválidas. Tente novamente.';
+                    errorDiv.style.display = 'block';
+                }
+            }catch(err){
+                errorDiv.textContent = 'Credenciais inválidas. Tente novamente.';
+                errorDiv.style.display = 'block';
+                console.error('Erro ao fazer login:', err);
+            }
+        }
+    </script>
+</body>
+</html>

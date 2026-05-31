@@ -9,14 +9,16 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
 
                 <li><a href="mapa.html">Mapa</a></li>
-                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
@@ -38,7 +40,7 @@
                 <input type="text" id="routeCode" placeholder="Código da rota" />
                 <input type="text" id="routeOrigin" placeholder="Origem" />
                 <input type="text" id="routeDestination" placeholder="Destino" />
-                <textarea id="routeStops" placeholder="Paragens (uma por linha)" rows="4"></textarea>
+                <textarea id="routeStops" placeholder="Paragens (uma por linha — aceite código ou nome)" rows="4"></textarea>
                 <select id="routeStatus">
                     <option value="ACTIVE">Ativa</option>
                     <option value="INACTIVE">Inativa</option>
@@ -160,8 +162,8 @@
                         </td>
                         <td>${vehiclesCount}</td>
                         <td>
-                            <button onclick="editarRota(${route.id}, '${route.code}', '${route.origin || ''}', '${route.destination || ''}', ${JSON.stringify(route.stops).replace(/"/g, '&quot;')}, '${route.status}')">Editar</button>
-                            <button onclick="verVeiculosRota(${route.id}, '${route.code}')" style="background: #3498db;">Ver Veículos</button>
+                            <button onclick="abrirEditarRota(this)" data-id="${route.id}" data-code="${route.code}" data-origin="${route.origin || ''}" data-destination="${route.destination || ''}" data-stops="${(route.stops || []).join('|')}" data-status="${route.status}">Editar</button>
+                            <button onclick="verVeiculosRota(${route.id}, '${route.code.replace(/'/g, "\\'")}')" style="background: #3498db;">Ver Veículos</button>
                             <button onclick="apagarRota(${route.id})" style="background: #e74c3c;">Apagar</button>
                         </td>
                     `;
@@ -205,6 +207,20 @@
             document.getElementById('adminRoutesSection').scrollIntoView({ behavior: 'smooth' });
         }
 
+        function abrirEditarRota(button) {
+            const id = button.getAttribute('data-id');
+            const code = button.getAttribute('data-code');
+            const origin = button.getAttribute('data-origin');
+            const destination = button.getAttribute('data-destination');
+            const stopsString = button.getAttribute('data-stops');
+            const status = button.getAttribute('data-status');
+            
+            // Converter stops de volta de string com "|" para array
+            const stops = stopsString ? stopsString.split('|') : [];
+            
+            editarRota(id, code, origin, destination, stops, status);
+        }
+
         function limparFormularioRota() {
             document.getElementById('routeId').value = '';
             document.getElementById('routeCode').value = '';
@@ -227,15 +243,56 @@
                 return;
             }
 
-            const stops = stopsText ? stopsText.split('\n').map(stop => stop.trim()).filter(stop => stop) : [];
+                // Resolver cada entrada como código ou nome de paragem.
+                // Aceita múltiplas paragens numa linha separadas por vírgula ou ponto e vírgula.
+                let stops = [];
+                if (stopsText) {
+                    stops = stopsText
+                        .split(/\r?\n/)                    // linhas
+                        .flatMap(line => line.split(/[,;]+/)) // separar por vírgulas/; dentro da linha
+                        .map(s => s.trim())
+                        .filter(s => s);
+                }
 
-            const route = {
-                code: code,
-                origin: origin || null,
-                destination: destination || null,
-                stops: stops,
-                status: status
-            };
+                try {
+                    const stopsResp = await fetch('/api/stops');
+                    if (stopsResp.ok) {
+                        const allStops = await stopsResp.json();
+                        stops = stops.map(entry => {
+                            const e = String(entry).trim();
+                            // procurar por token (entry já foi separado por ,/;)
+                            // Normalizar token para comparação case-insensitive
+                                const token = e.toLowerCase();
+                                // 1) Correspondência exata por nome (case-insensitive)
+                                let found = allStops.find(st => st.name && st.name.toLowerCase() === token);
+                                if (found) return found.name;
+                                // 2) Correspondência exata por código (se existir campo `code`)
+                                found = allStops.find(st => st.code && String(st.code) === e);
+                                if (found) return found.name;
+                                // 3) Comparar por id numérico apenas quando o token não tem zeros à esquerda
+                                const n = Number(e);
+                                if (!isNaN(n) && String(n) === e) {
+                                    found = allStops.find(st => st.id != null && Number(st.id) === n);
+                                    if (found) return found.name;
+                                }
+                                // 4) Comparação por metadata exata (se aplicável)
+                                found = allStops.find(st => st.metadata && String(st.metadata) === e);
+                                if (found) return found.name;
+                            // fallback: enviar o entry tal como foi escrito
+                            return entry;
+                        });
+                    }
+                } catch (err) {
+                    console.error('Erro ao resolver paragens por código:', err);
+                }
+
+                const route = {
+                    code: code,
+                    origin: origin || null,
+                    destination: destination || null,
+                    stops: stops,
+                    status: status
+                };
 
             try {
                 let resposta;
@@ -271,22 +328,207 @@
 
         async function verVeiculosRota(routeId, routeCode) {
             try {
-                const resposta = await fetch(`/api/routes/${routeId}/vehicles`);
-                const vehicles = await resposta.json();
+                // Carregar veículos da rota
+                const vehiclesResponse = await fetch(`/api/routes/${routeId}/vehicles`);
+                const vehiclesNaRota = await vehiclesResponse.json();
 
-                let mensagem = `Veículos na rota ${routeCode}:\n\n`;
-                if (vehicles.length === 0) {
-                    mensagem += 'Nenhum veículo atribuído a esta rota.';
+                // Carregar todos os veículos
+                const todosVeiculosResponse = await fetch('/api/vehicles');
+                const todosVehicles = await todosVeiculosResponse.json();
+
+                // Criar modal
+                const modal = document.createElement('div');
+                modal.id = 'modal-veiculos-rota';
+                modal.style.cssText = `
+                    position: fixed;
+                    inset: 0;
+                    z-index: 9999;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1rem;
+                `;
+
+                // HTML das abas
+                let htmlVeiculosNaRota = '';
+                if (vehiclesNaRota.length === 0) {
+                    htmlVeiculosNaRota = '<p style="color: var(--muted); text-align: center; padding: 1rem;">Nenhum veículo atribuído a esta rota.</p>';
                 } else {
-                    vehicles.forEach(vehicle => {
-                        mensagem += `- ${vehicle.plate} (${vehicle.model || 'Sem modelo'})\n`;
+                    vehiclesNaRota.forEach(vehicle => {
+                        htmlVeiculosNaRota += `
+                            <div style="
+                                background: var(--navy);
+                                padding: 0.8rem 1rem;
+                                border-radius: 6px;
+                                margin-bottom: 0.5rem;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                border: 1px solid rgba(255, 255, 255, 0.1);
+                            ">
+                                <span style="color: var(--white);">
+                                    <strong>${vehicle.plate}</strong> - ${vehicle.model || 'Sem modelo'} (Cap: ${vehicle.capacity || '-'})
+                                </span>
+                                <button onclick="removerVeiculoDaRota(${routeId}, ${vehicle.id}, '${vehicle.plate}')" style="
+                                    background: #e74c3c;
+                                    border: none;
+                                    color: white;
+                                    padding: 0.4rem 0.8rem;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                ">
+                                    Remover
+                                </button>
+                            </div>
+                        `;
                     });
                 }
 
-                alert(mensagem);
+                // Opções de adição
+                let optionsHtml = '<option value="">-- Selecione um veículo --</option>';
+                todosVehicles.forEach(vehicle => {
+                    // Não mostrar veículos que já estão na rota
+                    if (!vehiclesNaRota.some(v => v.id === vehicle.id)) {
+                        optionsHtml += `<option value="${vehicle.id}">${vehicle.plate} - ${vehicle.model || 'Sem modelo'}</option>`;
+                    }
+                });
+
+                modal.innerHTML = `
+                    <div style="
+                        background: var(--navy-light);
+                        border: 1px solid rgba(245, 166, 35, 0.2);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        max-width: 600px;
+                        width: 100%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+                    ">
+                        <h3 style="color: var(--white); margin-bottom: 1.5rem; font-size: 1.2rem;">
+                            Gerenciar Veículos - Rota ${routeCode}
+                        </h3>
+
+                        <h4 style="color: var(--amber); margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                            Veículos Atribuídos (${vehiclesNaRota.length})
+                        </h4>
+                        <div id="veiculos-na-rota" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem;">
+                            ${htmlVeiculosNaRota}
+                        </div>
+
+                        <h4 style="color: var(--amber); margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                            Adicionar Veículo
+                        </h4>
+                        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+                            <select id="modal-veiculo-select" style="
+                                flex: 1;
+                                padding: 0.7rem;
+                                background: var(--navy);
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                color: var(--white);
+                                border-radius: 6px;
+                                font-size: 0.95rem;
+                            ">
+                                ${optionsHtml}
+                            </select>
+                            <button onclick="adicionarVeiculoAoRota(${routeId})" style="
+                                background: #27ae60;
+                                border: none;
+                                color: white;
+                                padding: 0.7rem 1.5rem;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                white-space: nowrap;
+                            ">
+                                Adicionar
+                            </button>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <button onclick="fecharModalVeiculosRota()" style="
+                                background: transparent;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                color: var(--muted);
+                                padding: 0.6rem 1.5rem;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
             } catch (erro) {
-                console.error('Erro ao carregar veículos da rota:', erro);
+                console.error('Erro ao abrir modal de veículos:', erro);
                 alert('Erro ao carregar veículos da rota.');
+            }
+        }
+
+        function fecharModalVeiculosRota() {
+            const modal = document.getElementById('modal-veiculos-rota');
+            if (modal) modal.remove();
+        }
+
+        async function adicionarVeiculoAoRota(routeId) {
+            const select = document.getElementById('modal-veiculo-select');
+            const vehicleId = select.value;
+
+            if (!vehicleId) {
+                alert('Por favor, selecione um veículo.');
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/api/routes/${routeId}/vehicles/${vehicleId}`, {
+                    method: 'POST'
+                });
+
+                if (resposta.ok) {
+                    alert('Veículo adicionado com sucesso!');
+                    // Reabrir modal para atualizar
+                    fecharModalVeiculosRota();
+                    // Aguardar um pouco para a base de dados atualizar
+                    setTimeout(() => {
+                        const routeCode = document.querySelector('[onclick*="verVeiculosRota"]')?.textContent || '';
+                        // Recarregar a tabela
+                        carregarRotas();
+                    }, 500);
+                } else {
+                    alert('Erro ao adicionar veículo à rota.');
+                }
+            } catch (erro) {
+                console.error('Erro ao adicionar veículo:', erro);
+                alert('Erro ao adicionar veículo. Tente novamente.');
+            }
+        }
+
+        async function removerVeiculoDaRota(routeId, vehicleId, vehiclePlate) {
+            if (!confirm(`Deseja remover o veículo ${vehiclePlate} desta rota?`)) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/api/routes/${routeId}/vehicles/${vehicleId}`, {
+                    method: 'DELETE'
+                });
+
+                if (resposta.ok) {
+                    alert('Veículo removido com sucesso!');
+                    fecharModalVeiculosRota();
+                    carregarRotas();
+                } else {
+                    alert('Erro ao remover veículo da rota.');
+                }
+            } catch (erro) {
+                console.error('Erro ao remover veículo:', erro);
+                alert('Erro ao remover veículo. Tente novamente.');
             }
         }
 

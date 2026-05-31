@@ -22,6 +22,13 @@ public class Alert {
     @Column(columnDefinition = "TEXT")
     private String metadata;
 
+    // Novo: username do trabalhador que criou o alarme
+    private String createdBy;
+
+    // Novo: ações recomendadas que o supervisor escolhe (JSON)
+    @Column(columnDefinition = "TEXT")
+    private String recommendedActions;
+
     // Novo: username do supervisor que aceitou
     private String acceptedBy;
 
@@ -78,6 +85,12 @@ public class Alert {
 
     public String getMetadata() { return metadata; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    public String getRecommendedActions() { return recommendedActions; }
+    public void setRecommendedActions(String recommendedActions) { this.recommendedActions = recommendedActions; }
 
     public String getAcceptedBy() { return acceptedBy; }
     public void setAcceptedBy(String acceptedBy) { this.acceptedBy = acceptedBy; }

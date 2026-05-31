@@ -9,11 +9,12 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
-                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
@@ -29,25 +30,27 @@
 
     <section class="login-section">
         <div class="login-card">
-            <h2>Bem-vindo</h2>
-            <p>Entra na tua conta TUB para continuar.</p>
+            <h2>Bem-vindo ao TUB</h2>
+            <p>Faça login para aceder ao sistema completo.</p>
 
-            <div class="form-group">
-                <label for="emailInput">Email</label>
-                <input type="email" id="emailInput" placeholder="email@tub.pt" />
+            <!-- Botão Auth0 -->
+            <button id="btn-login-auth0" class="btn-login">
+                🔐 Entrar com Auth0
+            </button>
+
+            <div id="erro-msg" style="display: none; color: #ff5252; margin-top: 1rem; font-size: 0.9rem;">
+                Erro ao autenticar. Tente novamente.
             </div>
 
-            <div class="form-group">
-                <label for="passwordInput">Password</label>
-                <input type="password" id="passwordInput" placeholder="••••••••" />
-            </div>
-
-            <button class="btn-login" onclick="validarLogin()">Entrar</button>
-
-            <div id="erro-msg">Email ou password incorretos.</div>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666;">
+                Visitante? <a href="index.html" style="color: #f5a623;">Voltar à Home</a>
+            </p>
         </div>
     </section>
 
+    <!-- Auth0 SPA SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth0-integration.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

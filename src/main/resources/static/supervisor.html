@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB — Supervisor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <!-- Supervisor só vê o logout -->
+                <li id="nav-logout">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="admin-only" style="padding-top: 5rem;">
+        <div class="card-full">
+            <h2>Gestão de Alarmes</h2>
+
+            <div id="alarm-stats" class="stats-container">
+                <div class="stat-card high">Críticos <span id="count-high">0</span></div>
+                <div class="stat-card medium">Atenção <span id="count-medium">0</span></div>
+                <div class="stat-card low">Info <span id="count-low">0</span></div>
+            </div>
+
+            <table id="table-alerts">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Gravidade</th>
+                        <th>Estado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="alerts-body">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">
+                            A carregar alertas...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Proteger a página — só supervisores podem aceder
+        document.addEventListener("DOMContentLoaded", function () {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'SUPERVISOR') {
+                window.location.href = 'index.html';
+                return;
+            }
+            // Carregar alarmes ao entrar
+            carregarAlarmesParaSupervisor();
+            // Atualizar a cada 10 segundos
+            setInterval(carregarAlarmesParaSupervisor, 10000);
+        });
+    </script>
+</body>
+</html>

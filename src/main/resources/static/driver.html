@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Motorista - Alarmes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <ul class="nav-links">
+                <li><a href="driver.html">Início</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="driver-section" style="margin-top: 100px; padding: 2rem;">
+        <div class="container">
+            <div class="card-full">
+                <h2 style="font-family: var(--font-display); color: var(--amber); font-size: 2rem; margin-bottom: 1rem;">
+                    🚨 Teus Alarmes
+                </h2>
+                <p style="color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem;">
+                    Consulta aqui os alarmes enviados pelo supervisor e as ações recomendadas.
+                </p>
+
+                <div id="alarmes-container" style="display: grid; gap: 1.5rem;">
+                    <div style="text-align: center; color: var(--muted); padding: 2rem;">
+                        A carregar alarmes...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="margin-top: 4rem;">
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Carregar alarmes quando a página carregar
+        document.addEventListener('DOMContentLoaded', async function() {
+            verificarAcessos();
+            // Verificar se o utilizador é DRIVER
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'DRIVER') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Carrega os alarmes
+            await carregarAlarmesMotorista();
+            
+            // Recarrega a cada 5 segundos
+            setInterval(carregarAlarmesMotorista, 5000);
+        });
+
+        async function carregarAlarmesMotorista() {
+            try {
+                const resposta = await fetch('/api/alerts/driver');
+                if (resposta.ok) {
+                    const alarmes = await resposta.json();
+                    mostrarAlarmesMotorista(alarmes);
+                }
+            } catch (erro) {
+                console.error("Erro ao carregar alarmes:", erro);
+            }
+        }
+
+        function mostrarAlarmesMotorista(alarmes) {
+            const container = document.getElementById('alarmes-container');
+            
+            if (!alarmes || alarmes.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--muted); padding: 2rem;">
+                        ✓ Nenhum alarme neste momento. Viagem segura!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            alarmes.forEach(alarme => {
+                // Parse das ações recomendadas
+                let acoes = [];
+                try {
+                    if (alarme.recommendedActions) {
+                        acoes = JSON.parse(alarme.recommendedActions);
+                    }
+                } catch (e) {
+                    console.error("Erro ao fazer parse das ações:", e);
+                }
+
+                const acoesBotoes = acoes && acoes.length > 0
+                    ? acoes.map(acao => `
+                        <div style="
+                            background: rgba(52, 152, 219, 0.15);
+                            border-left: 3px solid var(--info);
+                            padding: 0.75rem 1rem;
+                            border-radius: 4px;
+                            margin-bottom: 0.5rem;
+                            color: var(--white);
+                            font-weight: 500;
+                        ">
+                            ✓ ${acao}
+                        </div>
+                    `).join('')
+                    : '<div style="color: var(--muted); font-size: 0.9rem;">Aguardando orientações do supervisor...</div>';
+
+                const cardEstilo = `
+                    background: linear-gradient(135deg, var(--navy-light) 0%, rgba(37, 61, 87, 0.8) 100%);
+                    border: 1px solid rgba(245, 166, 35, 0.2);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                `;
+
+                const gravityColor = alarme.severity === 'HIGH' ? 'var(--danger)' : 
+                                     alarme.severity === 'MEDIUM' ? 'var(--warning)' : 
+                                     'var(--info)';
+
+                container.innerHTML += `
+                    <div style="${cardEstilo}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="font-family: var(--font-display); color: var(--white); font-size: 1.1rem; margin: 0 0 0.25rem 0;">
+                                    ${alarme.type ?? 'Alarme'}
+                                </h3>
+                                <p style="color: var(--muted); font-size: 0.85rem; margin: 0;">
+                                    ID: #${alarme.id} • ${alarme.createdAt ? new Date(alarme.createdAt).toLocaleString('pt-PT') : ''}
+                                </p>
+                            </div>
+                            <span style="
+                                background: ${gravityColor};
+                                color: white;
+                                padding: 0.4rem 0.8rem;
+                                border-radius: 6px;
+                                font-weight: 700;
+                                font-size: 0.8rem;
+                            ">
+                                ${alarme.severity ?? 'UNKNOWN'}
+                            </span>
+                        </div>
+
+                        <div style="background: rgba(0, 0, 0, 0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <p style="color: var(--white); font-size: 0.95rem; line-height: 1.6; margin: 0;">
+                                ${alarme.description ?? '—'}
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <p style="color: var(--amber); font-weight: 600; margin: 0 0 0.75rem 0; font-size: 0.95rem;">
+                                📋 Ações Recomendadas:
+                            </p>
+                            <div>
+                                ${acoesBotoes}
+                            </div>
+                        </div>
+
+                        <div style="
+                            background: rgba(52, 152, 219, 0.1);
+                            border-left: 3px solid var(--info);
+                            padding: 0.75rem 1rem;
+                            border-radius: 4px;
+                            font-size: 0.9rem;
+                            color: var(--muted);
+                        ">
+                            ℹ️ Estado: <span style="color: var(--white); font-weight: 600;">${alarme.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

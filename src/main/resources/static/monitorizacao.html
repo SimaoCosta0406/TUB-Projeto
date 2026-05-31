@@ -9,13 +9,15 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
-                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
@@ -138,12 +140,20 @@
                 });
 
                 // Buscar todas as contagens de passageiros
-                const countsResponse = await fetch('/api/passengers/all');
+                const countsResponse = await fetch('/api/passengers/current');
                 if (!countsResponse.ok) {
                     throw new Error(`Erro ao buscar contagens: ${countsResponse.status}`);
                 }
-                const counts = await countsResponse.json();
-                console.log('Contagens carregadas:', counts);
+                const countsByPanel = await countsResponse.json();
+                const counts = Object.values(countsByPanel).map(count => ({
+                    panelId: count.panelId,
+                    timestamp: count.latestTimestamp,
+                    entryCount: count.totalEntries || 0,
+                    exitCount: count.totalExits || 0,
+                    currentOccupancy: count.currentOccupancy || 0,
+                    line: '-'
+                }));
+                console.log('Contagens carregadas:', countsByPanel);
 
                 // Usar apenas a contagem mais recente por painel
                 counts.forEach(count => {
@@ -155,7 +165,7 @@
                         if (!currentEntry.latestTimestamp || countTimestamp > currentEntry.latestTimestamp) {
                             currentEntry.totalEntradas = count.entryCount || 0;
                             currentEntry.totalSaidas = count.exitCount || 0;
-                            currentEntry.totalOccupancy = (count.entryCount || 0) - (count.exitCount || 0);
+                            currentEntry.totalOccupancy = count.currentOccupancy || 0;
                             currentEntry.line = count.line;
                             currentEntry.latestTimestamp = countTimestamp;
                         }
@@ -176,17 +186,16 @@
                 let temErros = false;
 
                 paineis.forEach(panel => {
-                    const ocup = panel.totalOccupancy;
+                    const ocup = Math.max(0, Math.min(CAPACIDADE, panel.totalOccupancy));
                     const percentagem = Math.round((ocup / CAPACIDADE) * 100);
                     
                     // Validar se percentagem é válida
                     let cor = 'var(--success)';
                     let percentagemDisplay = percentagem + '%';
                     
-                    if (percentagem < 0 || percentagem > 100) {
+                    if (percentagem >= 100) {
                         cor = 'var(--danger)';
-                        percentagemDisplay = percentagem + '% ⚠️ ERRO';
-                        temErros = true;
+                        percentagemDisplay = '100% CHEIO';
                     } else if (percentagem > 80) {
                         cor = 'var(--danger)';
                     } else if (percentagem > 60) {

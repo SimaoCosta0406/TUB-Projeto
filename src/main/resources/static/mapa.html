@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUB Projeto - Mapa</title>
+    <title>TUB Projeto - Horários e Percursos</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <img src="transferir.png" class="logo" alt="Logo TUB">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="mapa.html">Mapa</a></li>
-                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html">Monitorização</a></li>
                 <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
                 <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-paineis" style="display: none;"><a href="paineis-login.html">Painéis</a></li>
                 <li id="nav-login"><a href="login.html">Login</a></li>
                 <li id="nav-logout" style="display: none;">
                     <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
@@ -28,45 +30,47 @@
         </div>
     </nav>
 
-    <!-- Secção Admin: Gerir Paragens (só visível para ADMIN) -->
-    <section id="adminStopsSection" style="display: none; padding: 6rem 0 2rem;">
-        <div class="container card-box">
-            <h2>Gerir Paragens</h2>
-            <input type="hidden" id="stopId">
-            <div class="admin-form">
-                <h3>Dados da Paragem</h3>
-                <input type="text"   id="stopName"      placeholder="Nome da paragem" />
-                <input type="number" id="stopLatitude"  placeholder="Latitude"  step="any" />
-                <input type="number" id="stopLongitude" placeholder="Longitude" step="any" />
-                <div style="margin-top: 1rem;">
-                    <button onclick="adicionarOuEditarParagem()">Guardar</button>
-                    <button onclick="limparFormularioParagem()" style="background: var(--navy-light); color: var(--muted); border: 1px solid rgba(255,255,255,0.1);">Limpar</button>
+    <!-- Secção: Horários e Percursos -->
+    <section class="routes-section">
+        <div class="container">
+            <div class="routes-header">
+                <div class="routes-title-section">
+                    <h1>🚌 Horários e Percursos</h1>
                 </div>
-                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">
-                    Clica num marcador no mapa para pré-preencher os dados.
-                </p>
+                <div class="routes-search-section">
+                    <input type="text" id="searchRoute" class="search-input" placeholder="Filtrar linha...">
+                    <button id="searchRouteBtn" class="search-button">🔍</button>
+                </div>
             </div>
-        </div>
-    </section>
 
-    <!-- Mapa principal -->
-    <section class="map-section">
-        <div class="card-full">
-            <h2>Mapa dos Painéis</h2>
-            <div class="map-search">
-                <input type="text" id="searchStop" placeholder="Pesquisar paragem..." />
-                <button id="searchBtn">Procurar</button>
+            <!-- Container com duas colunas -->
+            <div class="routes-container">
+                <!-- Coluna esquerda: Lista de rotas -->
+                <div class="routes-list-container">
+                    <div id="routesList" class="routes-list">
+                        <!-- As rotas serão carregadas dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- Coluna direita: Detalhes da rota (mapa + informações) -->
+                <div class="route-details-container" id="routeDetailsContainer" style="display: none;">
+                    <div class="route-details-header">
+                        <button class="btn-back" onclick="fecharDetalhesRota()">← Voltar</button>
+                        <h2 id="selectedRouteName"></h2>
+                    </div>
+
+                    <!-- Mapa da rota -->
+                    <div id="routeMap" class="route-map"></div>
+
+                    <!-- Informações dos autocarros -->
+                    <div class="vehicles-info">
+                        <h3>🚌 Autocarros Disponíveis</h3>
+                        <div id="vehiclesInfo" class="vehicles-list">
+                            <!-- Informações dos veículos serão carregadas dinamicamente -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="map"></div>
-        </div>
-    </section>
-
-    <!-- Contagem de Passageiros (restrito a ADMIN) -->
-    <section id="contagem" style="display: none; padding: 3rem 0;">
-        <div class="container card-box">
-            <h2>Contagem de Passageiros</h2>
-            <p style="color: var(--muted); margin-bottom: 1rem;">Acesso restrito — apenas administradores.</p>
-            <p>Total de passageiros hoje: <strong id="totalPassageiros" style="color: var(--amber); font-size: 1.4rem;">0</strong></p>
         </div>
     </section>
 
@@ -78,40 +82,231 @@
     <script src="script.js"></script>
 
     <script>
+        let rotasCarregadas = [];
+        let mapaRota = null;
+        let marcadoresRota = [];
+
         document.addEventListener("DOMContentLoaded", function () {
-            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
-            if (utilizadorGuardado) {
-                const utilizador = JSON.parse(utilizadorGuardado);
-                if (utilizador.role === 'ADMIN') {
-                    const adminSection = document.getElementById('adminStopsSection');
-                    if (adminSection) adminSection.style.display = 'block';
-                    const contagemSection = document.getElementById('contagem');
-                    if (contagemSection) contagemSection.style.display = 'block';
-                    
-                    // Carregar e atualizar total de passageiros
-                    carregarTotalPassageiros();
-                    setInterval(carregarTotalPassageiros, 2000); // Atualizar a cada 2 segundos
-                }
+            verificarAcessos();
+            carregarRotas();
+
+            // Listener para a pesquisa
+            const inputPesquisa = document.getElementById("searchRoute");
+            const botaoPesquisa = document.getElementById("searchRouteBtn");
+
+            if (inputPesquisa) {
+                inputPesquisa.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter") filtrarRotas();
+                });
+            }
+
+            if (botaoPesquisa) {
+                botaoPesquisa.addEventListener("click", filtrarRotas);
             }
         });
 
-        async function carregarTotalPassageiros() {
+        // Carregar todas as rotas
+        async function carregarRotas() {
             try {
-                const response = await fetch('/api/passengers/total-entries');
-                const data = await response.json();
-                const elemento = document.getElementById('totalPassageiros');
-                if (elemento) {
-                    // Debug no console
-                    console.log('Total de passageiros carregado:', data);
-                    elemento.textContent = (data.totalEntries || 0).toLocaleString('pt-PT');
-                }
-            } catch (error) {
-                console.error('Erro ao carregar total de passageiros:', error);
-                const elemento = document.getElementById('totalPassageiros');
-                if (elemento) {
-                    elemento.textContent = 'Erro ao carregar';
-                }
+                const resposta = await fetch("/api/routes");
+                if (!resposta.ok) throw new Error("Erro ao carregar rotas");
+                
+                rotasCarregadas = await resposta.json();
+                exibirRotas(rotasCarregadas);
+            } catch (erro) {
+                console.error("Erro ao carregar rotas:", erro);
+                document.getElementById("routesList").innerHTML = 
+                    '<p style="color: var(--danger);">Erro ao carregar rotas</p>';
             }
+        }
+
+        // Exibir rotas na lista
+        function exibirRotas(rotas) {
+            const container = document.getElementById("routesList");
+            
+            if (!rotas || rotas.length === 0) {
+                container.innerHTML = '<p style="color: var(--muted);">Nenhuma rota encontrada</p>';
+                return;
+            }
+
+            container.innerHTML = rotas.map(rota => `
+                <div class="route-item" onclick="selecionarRota(${rota.id}, '${rota.code}', '${rota.origin}', '${rota.destination}')">
+                    <div class="route-number">${rota.code}</div>
+                    <div class="route-info">
+                        <p class="route-path">${rota.origin} → ${rota.destination}</p>
+                        <p class="route-meta">${rota.stops ? rota.stops.length : 0} paragens</p>
+                    </div>
+                    <div class="route-arrow">→</div>
+                </div>
+            `).join('');
+        }
+
+        // Filtrar rotas
+        function filtrarRotas() {
+            const termo = document.getElementById("searchRoute").value.toLowerCase();
+            
+            const rotasFiltradas = rotasCarregadas.filter(rota => 
+                rota.code.toLowerCase().includes(termo) ||
+                rota.origin.toLowerCase().includes(termo) ||
+                rota.destination.toLowerCase().includes(termo)
+            );
+
+            exibirRotas(rotasFiltradas);
+        }
+
+        // Selecionar uma rota e mostrar detalhes
+        async function selecionarRota(rotaId, codigo, origem, destino) {
+            try {
+                const resposta = await fetch(`/api/routes/${rotaId}`);
+                if (!resposta.ok) throw new Error("Erro ao carregar detalhes da rota");
+                
+                const rota = await resposta.json();
+                
+                // Mostrar container de detalhes
+                document.getElementById("routeDetailsContainer").style.display = "block";
+                document.getElementById("selectedRouteName").textContent = `${codigo}: ${origem} → ${destino}`;
+
+                // Carregar e exibir o mapa com as paragens
+                await exibirMapaRota(rota);
+                
+                // Carregar e exibir informações dos autocarros
+                await exibirInformacoesVeiculos(rota);
+
+            } catch (erro) {
+                console.error("Erro ao selecionar rota:", erro);
+                alert("Erro ao carregar detalhes da rota");
+            }
+        }
+
+        // Exibir mapa com as paragens da rota
+        async function exibirMapaRota(rota) {
+            // Destruir mapa anterior se existir
+            if (mapaRota) {
+                mapaRota.remove();
+                mapaRota = null;
+            }
+            marcadoresRota = [];
+
+            // Criar novo mapa
+            const mapContainer = document.getElementById("routeMap");
+            mapaRota = L.map(mapContainer).setView([41.5454, -8.4265], 13);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap contributors"
+            }).addTo(mapaRota);
+
+            // Carregar paragens
+            try {
+                const resposta = await fetch("/api/stops");
+                const stops = await resposta.json();
+
+                // Filtrar paragens que pertencem a esta rota
+                // Suporta rota.stops contendo nomes, ids (strings), códigos e entradas multi-token (comma/semicolon)
+                const paragensDaRota = stops.filter(stop => {
+                    if (!rota.stops || rota.stops.length === 0) return false;
+                    return rota.stops.some(entry => {
+                        if (entry == null) return false;
+                        // Se a entry contiver múltiplos tokens (ex: "0001,0007"), separamos
+                        const tokens = String(entry).split(/[,;]+/).map(t => t.trim()).filter(Boolean);
+                        return tokens.some(e => {
+                                // normalizar token e name para case-insensitive
+                                const token = e.toLowerCase();
+                                // 1) nome exato (case-insensitive)
+                                if (stop.name && stop.name.toLowerCase() === token) return true;
+                                // 2) código exato (se existir)
+                                if (stop.code && String(stop.code) === e) return true;
+                                // 3) id numérico apenas quando token não tem zeros à esquerda
+                                const n = Number(e);
+                                if (!isNaN(n) && String(n) === e && stop.id != null && Number(stop.id) === n) return true;
+                                // 4) metadata exata
+                                if (stop.metadata && String(stop.metadata) === e) return true;
+                            return false;
+                        });
+                    });
+                });
+
+                console.log('Rotas stops:', rota.stops, 'Encontradas paragens:', paragensDaRota.map(s=>s.name || s.id));
+
+                if (paragensDaRota.length === 0) {
+                    console.warn("Nenhuma paragem encontrada para esta rota");
+                    return;
+                }
+
+                // Adicionar marcadores ao mapa
+                paragensDaRota.forEach((stop, index) => {
+                    if (stop.latitude != null && stop.longitude != null) {
+                        const marcador = L.marker([stop.latitude, stop.longitude])
+                            .addTo(mapaRota)
+                            .bindPopup(`<strong>${index + 1}. ${stop.name}</strong>`);
+                        
+                        marcadoresRota.push(marcador);
+                    }
+                });
+
+                // Ajustar zoom ao mostrar todas as paragens
+                if (marcadoresRota.length > 0) {
+                    const group = new L.featureGroup(marcadoresRota);
+                    mapaRota.fitBounds(group.getBounds(), { padding: [50, 50] });
+                }
+
+            } catch (erro) {
+                console.error("Erro ao carregar paragens:", erro);
+            }
+        }
+
+        // Exibir informações dos autocarros
+        async function exibirInformacoesVeiculos(rota) {
+            const container = document.getElementById("vehiclesInfo");
+
+            if (!rota.vehicles || rota.vehicles.length === 0) {
+                container.innerHTML = '<p style="color: var(--muted);">Nenhum autocarro nesta rota</p>';
+                return;
+            }
+
+            const veiculosAtivos = rota.vehicles.filter(v => v.status === "IN_SERVICE");
+            const capacidadeTotal = rota.vehicles.reduce((sum, v) => sum + (v.capacity || 0), 0);
+            const capacidadeAtiva = veiculosAtivos.reduce((sum, v) => sum + (v.capacity || 0), 0);
+
+            container.innerHTML = `
+                <div class="vehicles-summary">
+                    <div class="summary-stat">
+                        <span class="stat-label">Total Disponível:</span>
+                        <span class="stat-value">${veiculosAtivos.length}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Capacidade Total:</span>
+                        <span class="stat-value">${capacidadeAtiva} lugares</span>
+                    </div>
+                </div>
+                <div class="vehicles-detail">
+                    ${rota.vehicles.map(veiculo => `
+                        <div class="vehicle-card ${veiculo.status === 'IN_SERVICE' ? 'active' : 'inactive'}">
+                            <div class="vehicle-plate">${veiculo.plate}</div>
+                            <div class="vehicle-details">
+                                <p><strong>Modelo:</strong> ${veiculo.model || 'N/A'}</p>
+                                <p><strong>Capacidade:</strong> ${veiculo.capacity || 0} lugares</p>
+                                <p><strong>Status:</strong> <span class="status-badge ${veiculo.status}">${veiculo.status === 'IN_SERVICE' ? '✓ Em Serviço' : '✗ Fora de Serviço'}</span></p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Fechar detalhes da rota
+        function fecharDetalhesRota() {
+            document.getElementById("routeDetailsContainer").style.display = "none";
+            
+            // Destruir mapa
+            if (mapaRota) {
+                mapaRota.remove();
+                mapaRota = null;
+            }
+            marcadoresRota = [];
+
+            // Limpar pesquisa
+            document.getElementById("searchRoute").value = "";
+            carregarRotas();
         }
     </script>
 </body>

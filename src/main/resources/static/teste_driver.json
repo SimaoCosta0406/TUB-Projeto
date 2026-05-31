@@ -1,0 +1,10 @@
+{
+  "id": 5,
+  "username": "driver@tub.pt",
+  "nome": "Motorista TUB",
+  "role": "DRIVER",
+  "verticais_acesso": ["alarmes"],
+  "permissoes": [
+    "ver_alarmes"
+  ]
+}

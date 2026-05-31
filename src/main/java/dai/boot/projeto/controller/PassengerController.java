@@ -60,6 +60,11 @@ public class PassengerController {
         return passengerService.getLatestCountsPerPanel();
     }
 
+    @GetMapping("/current")
+    public Map<Long, Map<String, Object>> getCurrentCounts() {
+        return passengerService.getCurrentCountsPerPanel();
+    }
+
     // UC6 - Passo 5: O sistema apresenta a ocupação atual [cite: 25]
     @GetMapping("/live-status")
     public ResponseEntity<List<PassengerCount>> getLiveOccupancy() {
@@ -83,6 +88,26 @@ public class PassengerController {
             @RequestParam(defaultValue = "1") int count) {
         PassengerCount record = passengerService.simulateExit(panelId, count);
         return ResponseEntity.ok(record);
+    }
+
+    @PostMapping("/{panelId}/count")
+    public ResponseEntity<Map<String, Object>> setCurrentCount(
+            @PathVariable Long panelId,
+            @RequestParam(required = false) Integer count,
+            @RequestBody(required = false) Map<String, Object> body) {
+        Integer requestedCount = count;
+        if (requestedCount == null && body != null && body.get("count") != null) {
+            requestedCount = Integer.valueOf(body.get("count").toString());
+        }
+        if (requestedCount == null && body != null && body.get("occupancy") != null) {
+            requestedCount = Integer.valueOf(body.get("occupancy").toString());
+        }
+        if (requestedCount == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Indica count por query param ou JSON."));
+        }
+
+        passengerService.setCurrentOccupancy(panelId, requestedCount);
+        return ResponseEntity.ok(passengerService.getCurrentCountForPanel(panelId));
     }
 
     // Total de entradas (soma de todas as entradas)

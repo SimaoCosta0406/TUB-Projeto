@@ -1,6 +1,7 @@
 package dai.boot.projeto.entities;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,10 @@ public class Route {
 
     @Column(columnDefinition = "text")
     private String metadata;
+
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Vehicle> vehicles = new ArrayList<>();
 
     // -------- CONSTRUTORES --------
 
@@ -72,6 +77,9 @@ public class Route {
     public String getMetadata()              { return metadata; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
 
+    public List<Vehicle> getVehicles()                 { return vehicles; }
+    public void setVehicles(List<Vehicle> vehicles)    { this.vehicles = vehicles; }
+
     // -------- MÉTODOS UTILITÁRIOS --------
 
     public void addStop(String stop) {
@@ -90,6 +98,36 @@ public class Route {
     public String stopsSummary() {
         if (stops == null || stops.isEmpty()) return "";
         return String.join(" -> ", stops);
+    }
+
+    // -------- MÉTODOS PARA GERENCIAR VEÍCULOS (BIDIRECIONAL) --------
+
+    /**
+     * Adiciona um veículo a esta rota mantendo a relação bidirecional.
+     * @param vehicle O veículo a ser adicionado
+     */
+    public void addVehicle(Vehicle vehicle) {
+        if (vehicle != null && !this.vehicles.contains(vehicle)) {
+            this.vehicles.add(vehicle);
+            if (vehicle.getRoute() != this) {
+                vehicle.setRoute(this);
+            }
+        }
+    }
+
+    /**
+     * Remove um veículo desta rota mantendo a relação bidirecional.
+     * @param vehicle O veículo a ser removido
+     * @return true se o veículo foi removido, false caso contrário
+     */
+    public boolean removeVehicle(Vehicle vehicle) {
+        if (vehicle != null && this.vehicles.remove(vehicle)) {
+            if (vehicle.getRoute() == this) {
+                vehicle.setRoute(null);
+            }
+            return true;
+        }
+        return false;
     }
 
     // -------- EQUALS, HASHCODE E TOSTRING --------
