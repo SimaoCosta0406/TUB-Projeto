@@ -19,6 +19,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByModelContainingIgnoreCase(String modelPart);
     List<Vehicle> findByRoute_Code(String routeCode);
     List<Vehicle> findByRoute(Route route);
+    long countByStatus(String status);
 
     @Query("SELECT v FROM Vehicle v JOIN v.route r JOIN r.stops s WHERE s = :stopName")
     List<Vehicle> findByRouteStopsContaining(@Param("stopName") String stopName);

@@ -7,9 +7,7 @@ import java.util.List;
 
 
 public interface PassengerCountRepository extends JpaRepository<PassengerCount, Long> {
-    
-    
     List<PassengerCount> findByPanelIdAndTimestampBetween(Long panelId, LocalDateTime from, LocalDateTime to);
-
     List<PassengerCount> findByTimestampAfter(LocalDateTime timestamp);
+    long countByTimestampAfter(LocalDateTime timestamp);
 }

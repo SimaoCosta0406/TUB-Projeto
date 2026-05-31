@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const painelIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
             shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-            iconSize: [35, 55],
-            iconAnchor: [17, 55],
+            iconSize: [18, 25],
+            iconAnchor: [9, 25],
             popupAnchor: [1, -45],
             shadowSize: [55, 55]
         });
@@ -171,10 +171,14 @@ function fazerLogout() {
 
 function verificarAcessos() {
     const navAdminUsers = document.getElementById('nav-admin-users');
+    garantirItemNavbar('nav-paineis', 'Painéis', 'paineis-login.html', 'nav-login');
+    garantirItemNavbar('nav-alarmes', 'Alarmes', 'javascript:void(0)', 'nav-login', "window.location.href='index.html#alarmes'");
+
     const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
     const navLogin         = document.getElementById('nav-login');
     const navLogout        = document.getElementById('nav-logout');
     const navAlarmes       = document.getElementById('nav-alarmes');
+    const navPaineis       = document.getElementById('nav-paineis');
     const navMonitorizacao = document.getElementById('nav-monitorizacao');
     const navVeiculos      = document.getElementById('nav-veiculos');
     const navRotas         = document.getElementById('nav-rotas');
@@ -197,6 +201,7 @@ function verificarAcessos() {
 
         if (utilizador.role === 'ADMIN') {
             if (navAlarmes)       navAlarmes.style.display       = 'inline-block';
+            if (navPaineis)       navPaineis.style.display       = 'inline-block';
             if (navMonitorizacao) navMonitorizacao.style.display = 'inline-block';
             if (navVeiculos)      navVeiculos.style.display      = 'inline-block';
             if (navRotas)         navRotas.style.display         = 'inline-block';
@@ -213,6 +218,7 @@ function verificarAcessos() {
 
         if (utilizador.role === 'SUPERVISOR') {
             if (navAlarmes) navAlarmes.style.display = 'inline-block';
+            if (navPaineis) navPaineis.style.display = 'none';
             if (navHome)    navHome.style.display    = 'none';
             if (navMapa)    navMapa.style.display    = 'none';
             if (navMonitorizacao) navMonitorizacao.style.display = 'none';
@@ -224,10 +230,36 @@ function verificarAcessos() {
         if (navLogin)         navLogin.style.display         = 'inline-block';
         if (navLogout)        navLogout.style.display        = 'none';
         if (navAlarmes)       navAlarmes.style.display       = 'none';
+        if (navPaineis)       navPaineis.style.display       = 'none';
         if (navMonitorizacao) navMonitorizacao.style.display = 'none';
         if (navVeiculos)      navVeiculos.style.display      = 'none';
         if (navRotas)         navRotas.style.display         = 'none';
         if (navEnviarAlarme)  navEnviarAlarme.style.display  = 'none';
+    }
+}
+
+function garantirItemNavbar(id, texto, href, beforeId, onclick) {
+    if (document.getElementById(id)) return;
+
+    const navLinks = document.querySelector('nav .nav-links');
+    if (!navLinks) return;
+
+    const item = document.createElement('li');
+    item.id = id;
+    item.style.display = 'none';
+
+    const link = document.createElement('a');
+    link.href = href;
+    link.textContent = texto;
+    if (onclick) link.setAttribute('onclick', onclick);
+
+    item.appendChild(link);
+
+    const before = beforeId ? document.getElementById(beforeId) : null;
+    if (before) {
+        navLinks.insertBefore(item, before);
+    } else {
+        navLinks.appendChild(item);
     }
 }
 
@@ -403,6 +435,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
     });
+
+    const hashSection = window.location.hash.replace('#', '');
+    if (hashSection && SECCOES_INDEX.includes(hashSection)) {
+        mostrarSecao(hashSection);
+    }
 });
 
 ///////////////////// WORKER — Enviar Alarme /////////////////////

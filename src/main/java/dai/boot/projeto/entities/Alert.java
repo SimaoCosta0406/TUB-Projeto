@@ -17,6 +17,7 @@ public class Alert {
     private String severity;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime acceptedAt;
     private LocalDateTime resolvedAt;
 
     @Column(columnDefinition = "TEXT")
@@ -79,6 +80,9 @@ public class Alert {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getAcceptedAt() { return acceptedAt; }
+    public void setAcceptedAt(LocalDateTime acceptedAt) { this.acceptedAt = acceptedAt; }
 
     public LocalDateTime getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }

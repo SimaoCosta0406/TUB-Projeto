@@ -77,6 +77,12 @@ public class AlertController {
         return alertService.getSeverityStats();
     }
 
+    // Estatísticas operacionais (desempenho dos supervisores e workers)
+    @GetMapping("/stats/operational")
+    public Map<String, Object> getOperationalStats() {
+        return alertService.getOperationalStats();
+    }
+
     // Histórico completo
     @GetMapping("/history")
     public List<Alert> getHistory() {

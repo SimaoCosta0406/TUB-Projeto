@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUB Projeto - Monitorização</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── ESTILOS ADICIONAIS DO DASHBOARD DE MONITORIZAÇÃO ── */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .monitor-card {
+            background: var(--navy-mid);
+            border: 1px solid rgba(245, 166, 35, 0.12);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            box-shadow: var(--shadow);
+            transition: transform var(--transition), border-color var(--transition);
+        }
+
+        .monitor-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(245, 166, 35, 0.25);
+        }
+
+        .monitor-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--amber);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Indicador de Qualidade de Fluxo */
+        .quality-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .quality-dial {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: conic-gradient(var(--score-color, var(--success)) 0%, rgba(255,255,255,0.05) 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            transition: background var(--transition);
+        }
+
+        .quality-dial::before {
+            content: '';
+            position: absolute;
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            background: var(--navy-mid);
+        }
+
+        .quality-value {
+            position: relative;
+            font-family: var(--font-display);
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--white);
+            z-index: 2;
+        }
+
+        .quality-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.06);
+        }
+
+        /* Pipelines */
+        .pipeline-item {
+            background: rgba(13, 27, 42, 0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .pipeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pipeline-name {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--white);
+        }
+
+        .pipeline-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .pipeline-time {
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .pipeline-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 0.5rem;
+            margin-top: 0.2rem;
+        }
+
+        .btn-run-pipeline {
+            background: transparent;
+            border: 1px solid var(--amber);
+            color: var(--amber);
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.35rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            transition: all var(--transition);
+        }
+
+        .btn-run-pipeline:hover {
+            background: var(--amber);
+            color: var(--navy);
+        }
+
+        /* Anomalias */
+        .anomaly-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .anomaly-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }
+
+        .anomaly-item.danger {
+            background: rgba(231, 76, 60, 0.12);
+            border: 1px solid rgba(231, 76, 60, 0.25);
+            color: #ff8f85;
+        }
+
+        .anomaly-item.warning {
+            background: rgba(243, 156, 18, 0.12);
+            border: 1px solid rgba(243, 156, 18, 0.25);
+            color: #ffc266;
+        }
+
+        .anomaly-item.success {
+            background: rgba(46, 204, 113, 0.12);
+            border: 1px solid rgba(46, 204, 113, 0.25);
+            color: #9bf0be;
+        }
+
+        /* Validações */
+        .validation-section {
+            margin-top: 2rem;
+        }
+
+        .validation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--navy-mid);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-top: 1rem;
+            border: 1px solid rgba(245, 166, 35, 0.08);
+        }
+
+        .validation-table th {
+            background: rgba(13, 27, 42, 0.8);
+            font-family: var(--font-display);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(245, 166, 35, 0.15);
+        }
+
+        .validation-table tr {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background var(--transition);
+        }
+
+        .validation-table tr:hover {
+            background: rgba(245, 166, 35, 0.03);
+        }
+
+        .validation-table td {
+            padding: 1rem 1.25rem;
+            font-size: 0.88rem;
+            vertical-align: middle;
+        }
+
+        .category-badge {
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .category-badge.route { background: rgba(52, 152, 219, 0.18); color: var(--info); }
+        .category-badge.vehicle { background: rgba(155, 89, 182, 0.18); color: #c39bd3; }
+        .category-badge.stop { background: rgba(46, 204, 113, 0.18); color: var(--success); }
+        .category-badge.relationship { background: rgba(241, 196, 15, 0.18); color: var(--warning); }
+
+        .refresh-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn-refresh {
+            background: var(--amber);
+            color: var(--navy);
+            border: none;
+            border-radius: 20px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+        }
+
+        .btn-refresh:hover {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-run-all {
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid var(--amber);
+            color: var(--amber);
+        }
+
+        .btn-run-all:hover {
+            background: var(--amber);
+            color: var(--navy);
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+
+        .mini-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .mini-stat-card {
+            background: rgba(13, 27, 42, 0.35);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 6px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .mini-stat-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Abas Estilo */
+        .tab-bar {
+            background: var(--navy-light);
+            border-bottom: 1px solid rgba(245, 166, 35, 0.15);
+            padding: 1rem 0;
+            margin-top: 68px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: var(--font-display);
+            font-weight: 700;
+            padding: 0.5rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+            transition: all var(--transition);
+        }
+
+        .tab-btn.active {
+            color: var(--amber);
+            border-bottom-color: var(--amber);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem 0;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Estilização para dropdowns/inputs em Gestão de Linhas */
+        .gestao-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .gestao-form select,
+        .gestao-form input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--navy);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--white);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .gestao-form select:focus,
+        .gestao-form input:focus {
+            border-color: var(--amber);
+        }
+
+        .gestao-form label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--amber);
+            color: var(--navy);
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.8rem 1.8rem;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Tabela Ocupação original */
+        #table-ocupacao {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--navy-mid);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(245, 166, 35, 0.08);
+        }
+
+        #table-ocupacao thead th {
+            background: rgba(13, 27, 42, 0.8);
+            font-family: var(--font-display);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(245, 166, 35, 0.15);
+        }
+
+        #table-ocupacao tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background var(--transition);
+        }
+
+        #table-ocupacao tbody tr:hover {
+            background: rgba(245, 166, 35, 0.03);
+        }
+
+        #table-ocupacao tbody td {
+            padding: 1rem 1.25rem;
+            font-size: 0.88rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="brand-link" aria-label="Voltar ao Home">
+                <img src="transferir.png" class="logo" alt="Logo TUB">
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="mapa.html">Mapa</a></li>
+                <li id="nav-admin-users" style="display:none;"><a href="admin-users.html">Utilizadores</a></li>
+                <li id="nav-monitorizacao" style="display: none;"><a href="monitorizacao.html" style="color: var(--amber);">Monitorização</a></li>
+                <li id="nav-veiculos" style="display: none;"><a href="veiculos.html">Veículos</a></li>
+                <li id="nav-rotas" style="display: none;"><a href="rotas.html">Rotas</a></li>
+                <li id="nav-login"><a href="login.html">Login</a></li>
+                <li id="nav-logout" style="display: none;">
+                    <a href="javascript:void(0)" onclick="fazerLogout()">Sair</a>
+                </li>
+                <li id="nav-alarmes" style="display: none;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'">Alarmes</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- NAVEGAÇÃO ENTRE ABAS -->
+    <section class="tab-bar">
+        <div class="container">
+            <div style="display: flex; gap: 1.5rem;">
+                <button onclick="abaAtiva('fluxos')" id="tab-fluxos" class="tab-btn active">📊 Ingestão & Validação (UC 5.1-5.3)</button>
+                <button onclick="abaAtiva('ocupacao')" id="tab-ocupacao-btn" class="tab-btn">📺 Ocupação & Painéis</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 1: INTEGRATION DASHBOARD (Fluxos & Validação) -->
+    <section id="secao-fluxos" class="tab-content active">
+        <div class="container">
+            <div class="refresh-row">
+                <div>
+                    <h2 style="font-family: var(--font-display); font-size: 1.6rem; color: var(--amber); margin-bottom: 0.25rem;">
+                        📊 Painel de Integração de Dados
+                    </h2>
+                    <p style="color: var(--muted); font-size: 0.9rem;">
+                        Monitorização de pipelines, anomalias e qualidade dos dados em tempo real.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <span id="last-updated-text" style="font-size: 0.8rem; color: var(--muted);">A carregar dados...</span>
+                    <button onclick="carregarDadosDashboard()" class="btn-refresh">🔄 Atualizar</button>
+                    <button onclick="executarTodosPipelines()" class="btn-refresh btn-run-all">⚡ Correr Pipelines</button>
+                </div>
+            </div>
+
+            <!-- Grid de monitorização -->
+            <div class="dashboard-grid">
+                <!-- Pipelines (5.1) -->
+                <div class="monitor-card">
+                    <h3>📥 Ingestão de Dados (Pipelines)</h3>
+                    
+                    <div class="mini-stats-grid">
+                        <div class="mini-stat-card">
+                            <span class="mini-stat-label">Ocupações</span>
+                            <span id="count-db-occupancy" class="stat-value">-</span>
+                        </div>
+                        <div class="mini-stat-card">
+                            <span class="mini-stat-label">Alertas</span>
+                            <span id="count-db-alerts" class="stat-value">-</span>
+                        </div>
+                        <div class="mini-stat-card">
+                            <span class="mini-stat-label">Veículos</span>
+                            <span id="count-db-vehicles" class="stat-value">-</span>
+                        </div>
+                        <div class="mini-stat-card">
+                            <span class="mini-stat-label">Rotas</span>
+                            <span id="count-db-routes" class="stat-value">-</span>
+                        </div>
+                    </div>
+
+                    <div class="pipelines-list">
+                        <div class="pipeline-item">
+                            <div class="pipeline-header">
+                                <span class="pipeline-name">🚌 Ocupação de Veículos (30s)</span>
+                                <span id="pipe-occupancy-status" class="pipeline-status" style="background: rgba(255,255,255,0.08); color: var(--muted);">INATIVO</span>
+                            </div>
+                            <div class="pipeline-actions">
+                                <span id="pipe-occupancy-time" class="pipeline-time">Nunca executado</span>
+                                <button onclick="executarPipeline('occupancy')" class="btn-run-pipeline">Correr</button>
+                            </div>
+                        </div>
+
+                        <div class="pipeline-item">
+                            <div class="pipeline-header">
+                                <span class="pipeline-name">🚨 Alertas Simulados (60s)</span>
+                                <span id="pipe-alerts-status" class="pipeline-status" style="background: rgba(255,255,255,0.08); color: var(--muted);">INATIVO</span>
+                            </div>
+                            <div class="pipeline-actions">
+                                <span id="pipe-alerts-time" class="pipeline-time">Nunca executado</span>
+                                <button onclick="executarPipeline('alerts')" class="btn-run-pipeline">Correr</button>
+                            </div>
+                        </div>
+
+                        <div class="pipeline-item">
+                            <div class="pipeline-header">
+                                <span class="pipeline-name">📈 Métricas de Rota (120s)</span>
+                                <span id="pipe-metrics-status" class="pipeline-status" style="background: rgba(255,255,255,0.08); color: var(--muted);">INATIVO</span>
+                            </div>
+                            <div class="pipeline-actions">
+                                <span id="pipe-metrics-time" class="pipeline-time">Nunca executado</span>
+                                <button onclick="executarPipeline('route-metrics')" class="btn-run-pipeline">Correr</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualidade do Fluxo (5.2) -->
+                <div class="monitor-card" style="display: flex; flex-direction: column;">
+                    <h3>📊 Qualidade do Fluxo de Dados</h3>
+                    <div class="quality-container">
+                        <div id="quality-dial" class="quality-dial">
+                            <div id="quality-value" class="quality-value">-%</div>
+                        </div>
+                        <div id="quality-label" class="quality-label" style="color: var(--muted);">Carregando...</div>
+                    </div>
+
+                    <div style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                            <span style="color: var(--muted);">Veículos Ativos em Serviço:</span>
+                            <strong id="mon-vehicles-active" style="color: var(--white);">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                            <span style="color: var(--muted);">Rotas Ativas Monitorizadas:</span>
+                            <strong id="mon-routes-active" style="color: var(--white);">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                            <span style="color: var(--muted);">Eventos nos últimos 30 min:</span>
+                            <strong id="mon-events-count" style="color: var(--white);">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deteção de Anomalias (5.2) -->
+                <div class="monitor-card">
+                    <h3>⚠️ Deteção de Anomalias</h3>
+                    <div id="anomalies-container" class="anomaly-box">
+                        <div style="color: var(--muted); text-align: center; padding: 2rem 0;">
+                            A verificar anomalias...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validação Vertical de Dados (5.3) -->
+            <div class="validation-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.25rem; color: var(--amber); margin: 0;">
+                        🔍 Integridade de Dados & Validação Vertical
+                    </h3>
+                    <span id="validation-score-badge" class="status-badge" style="font-size: 0.85rem; padding: 0.35rem 0.9rem;">
+                        Score: --%
+                    </span>
+                </div>
+                <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                    Deteta erros de dados, restrições inconsistentes e quebras de relacionamento entre Rotas, Veículos e Paragens.
+                </p>
+
+                <table class="validation-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Categoria</th>
+                            <th style="width: 160px;">ID / Entidade</th>
+                            <th>Inconsistência Detetada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="validation-body">
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--muted); padding: 3rem;">
+                                A validar base de dados...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 2: PAINÉIS & OCUPAÇÃO (Original do Git Pull) -->
+    <section id="secao-ocupacao" class="tab-content">
+        <div class="container">
+            <div class="monitor-card" style="margin-bottom: 2rem; background: var(--navy-mid);">
+                <h3 style="border-bottom: none; margin-bottom: 0.5rem;">📺 Estado Atual e Ocupação dos Painéis</h3>
+                
+                <!-- Alerta de falha de sensores -->
+                <div id="alerta-sensor" style="display: none; background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.35); border-radius: 8px; color: #ff8f85; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    ⚠️ Falha detetada nos sensores!
+                </div>
+
+                <table id="table-ocupacao">
+                    <thead>
+                        <tr>
+                            <th>Localização</th>
+                            <th>Linha</th>
+                            <th>Entradas</th>
+                            <th>Saídas</th>
+                            <th>Ocupação Total</th>
+                            <th>Percentagem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-ocupacao">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--muted); padding: 2rem;">
+                                A carregar dados de ocupação...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Gestão de Linhas de Painéis -->
+            <div class="monitor-card" style="background: var(--navy-mid);">
+                <h3>⚙️ Gestão de Linhas de Painéis</h3>
+                <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+                    Selecione um painel informativo digital e defina manualmente qual a linha de trânsito (Rota) que deve ser monitorizada.
+                </p>
+
+                <div class="gestao-form">
+                    <div>
+                        <label for="painel-select">Selecionar Painel:</label>
+                        <select id="painel-select">
+                            <option value="">-- Selecionar Painel --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Localização:</label>
+                        <input type="text" id="painel-location" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed; color: var(--muted);">
+                    </div>
+                    <div>
+                        <label for="linha-input">Escrever Linha (Código):</label>
+                        <input type="text" id="linha-input" placeholder="Ex: Rota-1, Rota-A, etc...">
+                    </div>
+                    <button onclick="guardarLinhaManual()" class="btn-primary" style="height: 48px;">Guardar</button>
+                </div>
+
+                <div id="info-painel-atual" style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.3); border-radius: 8px; padding: 1rem; display: none; margin-top: 1rem;">
+                    <p style="font-size: 0.9rem;"><strong>Painel Selecionado:</strong> <span id="painel-info-text" style="color: var(--amber); font-weight: 600;">-</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // ── CONTROLO DE ABAS ────────────────────────────────
+        function abaAtiva(aba) {
+            // Esconder conteúdos
+            document.getElementById("secao-fluxos").classList.remove("active");
+            document.getElementById("secao-ocupacao").classList.remove("active");
+
+            // Desativar botões
+            document.getElementById("tab-fluxos").classList.remove("active");
+            document.getElementById("tab-ocupacao-btn").classList.remove("active");
+
+            // Ativar selecionada
+            if (aba === "fluxos") {
+                document.getElementById("secao-fluxos").classList.add("active");
+                document.getElementById("tab-fluxos").classList.add("active");
+                carregarDadosDashboard();
+            } else if (aba === "ocupacao") {
+                document.getElementById("secao-ocupacao").classList.add("active");
+                document.getElementById("tab-ocupacao-btn").classList.add("active");
+                carregarDadosOcupacao();
+                carregarGestaoLinhas();
+            }
+        }
+
+        // Verificar autenticação
+        document.addEventListener("DOMContentLoaded", function () {
+            const utilizadorGuardado = localStorage.getItem('utilizadorAtivo');
+            if (!utilizadorGuardado) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const utilizador = JSON.parse(utilizadorGuardado);
+            if (utilizador.role !== 'ADMIN') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            verificarAcessos();
+            carregarDadosDashboard();
+            
+            // Auto atualizar a aba ativa
+            setInterval(() => {
+                if (document.getElementById("secao-fluxos").classList.contains("active")) {
+                    carregarDadosDashboard();
+                } else {
+                    carregarDadosOcupacao();
+                }
+            }, 20000);
+        });
+
+        // ── SCRIPTS DA TAB 1 (INTEGRAÇÃO & PIPELINES) ─────────
+        function formatarHora(isoString) {
+            if (!isoString) return "Nunca executado";
+            try {
+                const data = new Date(isoString);
+                return data.toLocaleTimeString("pt-PT") + " - " + data.toLocaleDateString("pt-PT");
+            } catch (e) {
+                return isoString;
+            }
+        }
+
+        async function executarPipeline(pipelineName) {
+            try {
+                let url = `/api/data-integration/ingestion/run/${pipelineName}`;
+                const res = await fetch(url, { method: "POST" });
+                if (!res.ok) throw new Error("Falha ao correr pipeline");
+                
+                alert(`Pipeline de ${pipelineName} executado com sucesso!`);
+                await carregarDadosDashboard();
+            } catch (err) {
+                console.error(err);
+                alert(`Erro ao executar pipeline: ${err.message}`);
+            }
+        }
+
+        async function executarTodosPipelines() {
+            try {
+                const res = await fetch("/api/data-integration/ingestion/run/all", { method: "POST" });
+                if (!res.ok) throw new Error("Falha ao correr pipelines");
+                
+                alert("Todos os pipelines foram acionados manualmente!");
+                await carregarDadosDashboard();
+            } catch (err) {
+                console.error(err);
+                alert(`Erro ao acionar pipelines: ${err.message}`);
+            }
+        }
+
+        async function carregarDadosDashboard() {
+            const timeText = document.getElementById("last-updated-text");
+            if (timeText) timeText.textContent = "A atualizar...";
+
+            try {
+                const res = await fetch("/api/data-integration/dashboard");
+                if (!res.ok) throw new Error("Erro ao carregar dados do dashboard");
+                
+                const data = await res.json();
+                exibirDados(data);
+                
+                const agora = new Date();
+                if (timeText) timeText.textContent = "Atualizado às: " + agora.toLocaleTimeString("pt-PT");
+            } catch (err) {
+                console.error(err);
+                if (timeText) timeText.textContent = "Erro na atualização";
+                document.getElementById("validation-body").innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--danger); padding: 2rem;">
+                            Erro ao carregar o dashboard de monitorização. Verifique se o servidor Spring Boot está ativo.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function exibirDados(data) {
+            const ingestion = data.ingestion || {};
+            const monitoring = data.monitoring || {};
+            const anomalies = data.anomalies || {};
+            const validation = data.validation || {};
+
+            document.getElementById("count-db-occupancy").textContent = ingestion.passengerCountRecords ?? 0;
+            document.getElementById("count-db-alerts").textContent = ingestion.alertRecords ?? 0;
+            document.getElementById("count-db-vehicles").textContent = ingestion.vehiclesMonitored ?? 0;
+            document.getElementById("count-db-routes").textContent = ingestion.routesMonitored ?? 0;
+
+            atualizarStatusPipeline("pipe-occupancy-status", "pipe-occupancy-time", ingestion.lastOccupancyRun || {});
+            atualizarStatusPipeline("pipe-alerts-status", "pipe-alerts-time", ingestion.lastAlertsRun || {});
+            atualizarStatusPipeline("pipe-metrics-status", "pipe-metrics-time", ingestion.lastRouteMetricsRun || {});
+
+            const qualityScore = monitoring.flowQuality ?? 0;
+            const qualityStatus = monitoring.flowQualityStatus ?? "N/A";
+            
+            const qualityDial = document.getElementById("quality-dial");
+            const qualityValue = document.getElementById("quality-value");
+            const qualityLabel = document.getElementById("quality-label");
+
+            qualityValue.textContent = qualityScore + "%";
+            qualityLabel.textContent = qualityStatus;
+
+            let color = "var(--success)";
+            if (qualityScore < 40) {
+                color = "var(--danger)";
+                qualityLabel.style.color = "var(--danger)";
+            } else if (qualityScore < 70) {
+                color = "var(--warning)";
+                qualityLabel.style.color = "var(--warning)";
+            } else {
+                qualityLabel.style.color = "var(--success)";
+            }
+            qualityDial.style.setProperty("--score-color", color);
+            qualityDial.style.background = `conic-gradient(${color} ${qualityScore}%, rgba(255,255,255,0.05) ${qualityScore}%)`;
+
+            document.getElementById("mon-vehicles-active").textContent = monitoring.vehiclesInService ?? 0;
+            document.getElementById("mon-routes-active").textContent = monitoring.activeRoutes ?? 0;
+            
+            obterEventosRecentes();
+
+            const anomaliesContainer = document.getElementById("anomalies-container");
+            anomaliesContainer.innerHTML = "";
+            let hasAnomalies = false;
+
+            if (anomalies.anomalyDetected) {
+                if (anomalies.excessiveAlerts) {
+                    anomaliesContainer.innerHTML += `
+                        <div class="anomaly-item danger">
+                            <span>🚨</span>
+                            <div>
+                                <strong>Volume Excessivo de Alertas</strong>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:0.15rem;">Existem ${anomalies.activeAlertCount} alertas ativos que necessitam de resolução imediata.</div>
+                            </div>
+                        </div>
+                    `;
+                    hasAnomalies = true;
+                }
+                if (anomalies.lowVehicleAvailability) {
+                    anomaliesContainer.innerHTML += `
+                        <div class="anomaly-item warning">
+                            <span>🚌</span>
+                            <div>
+                                <strong>Poucos Veículos em Serviço</strong>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:0.15rem;">Apenas ${anomalies.vehiclesInService} de ${anomalies.totalVehicles} veículos estão atualmente ativos.</div>
+                            </div>
+                        </div>
+                    `;
+                    hasAnomalies = true;
+                }
+                if (anomalies.hasInactiveRoutes) {
+                    anomaliesContainer.innerHTML += `
+                        <div class="anomaly-item warning">
+                            <span>🗺️</span>
+                            <div>
+                                <strong>Rotas Inativas Registadas</strong>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:0.15rem;">Existem ${anomalies.inactiveRoutesCount} rotas em estado INACTIVE ou sob manutenção.</div>
+                            </div>
+                        </div>
+                    `;
+                    hasAnomalies = true;
+                }
+            }
+
+            if (!hasAnomalies) {
+                anomaliesContainer.innerHTML = `
+                    <div class="anomaly-item success" style="justify-content: center; text-align: center; padding: 1.5rem 1rem; width: 100%;">
+                        <div>
+                            <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">✅</div>
+                            <strong>Sistema Nominal</strong>
+                            <div style="font-size:0.78rem; opacity:0.85; margin-top:0.25rem;">Nenhuma anomalia crítica foi detetada no fluxo operacional.</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const valScore = validation.overallValidationScore ?? 100;
+            const valStatus = validation.validationStatus ?? "PASS";
+            const scoreBadge = document.getElementById("validation-score-badge");
+            
+            scoreBadge.textContent = `Score: ${valScore}%`;
+            if (valStatus === "PASS") {
+                scoreBadge.className = "status-badge status-active";
+            } else if (valStatus === "WARNING") {
+                scoreBadge.className = "status-badge status-maintenance";
+            } else {
+                scoreBadge.className = "status-badge status-inactive";
+            }
+
+            const valBody = document.getElementById("validation-body");
+            valBody.innerHTML = "";
+            let totalIssues = 0;
+
+            if (validation.routes && validation.routes.length > 0) {
+                validation.routes.forEach(item => {
+                    (item.issues || []).forEach(issue => {
+                        valBody.innerHTML += `
+                            <tr>
+                                <td><span class="category-badge route">Rota</span></td>
+                                <td><strong>${item.routeCode || 'ID: ' + item.routeId}</strong></td>
+                                <td style="color: #ff8f85;">${issue}</td>
+                            </tr>
+                        `;
+                        totalIssues++;
+                    });
+                });
+            }
+
+            if (validation.vehicles && validation.vehicles.length > 0) {
+                validation.vehicles.forEach(item => {
+                    (item.issues || []).forEach(issue => {
+                        valBody.innerHTML += `
+                            <tr>
+                                <td><span class="category-badge vehicle">Veículo</span></td>
+                                <td><strong>${item.vehiclePlate || 'ID: ' + item.vehicleId}</strong></td>
+                                <td style="color: #ff8f85;">${issue}</td>
+                            </tr>
+                        `;
+                        totalIssues++;
+                    });
+                });
+            }
+
+            if (validation.stops && validation.stops.length > 0) {
+                validation.stops.forEach(item => {
+                    (item.issues || []).forEach(issue => {
+                        valBody.innerHTML += `
+                            <tr>
+                                <td><span class="category-badge stop">Paragem</span></td>
+                                <td><strong>${item.stopName || 'ID: ' + item.stopId}</strong></td>
+                                <td style="color: #ff8f85;">${issue}</td>
+                            </tr>
+                        `;
+                        totalIssues++;
+                    });
+                });
+            }
+
+            if (validation.relationships && validation.relationships.length > 0) {
+                validation.relationships.forEach(item => {
+                    let entityName = "Vários";
+                    if (item.routeCode) entityName = `Rota: ${item.routeCode}`;
+                    else if (item.vehiclePlate) entityName = `Veículo: ${item.vehiclePlate}`;
+                    else if (item.stopReference) entityName = `Ref Paragem: ${item.stopReference}`;
+
+                    valBody.innerHTML += `
+                        <tr>
+                            <td><span class="category-badge relationship">Relação</span></td>
+                            <td><strong>${entityName}</strong></td>
+                            <td style="color: #ffc266;">${item.issue}</td>
+                        </tr>
+                    `;
+                    totalIssues++;
+                });
+            }
+
+            if (totalIssues === 0) {
+                valBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--success); padding: 3rem; font-weight: 500;">
+                            ✨ Todos os dados estão íntegros e consistentes! Nenhuma inconsistência vertical foi encontrada.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function atualizarStatusPipeline(statusElId, timeElId, runData) {
+            const statusEl = document.getElementById(statusElId);
+            const timeEl = document.getElementById(timeElId);
+
+            if (runData.status) {
+                statusEl.textContent = runData.status;
+                if (runData.status === "SUCCESS") {
+                    statusEl.style.background = "rgba(46,204,113,0.18)";
+                    statusEl.style.color = "var(--success)";
+                } else {
+                    statusEl.style.background = "rgba(231,76,60,0.18)";
+                    statusEl.style.color = "var(--danger)";
+                }
+            } else {
+                statusEl.textContent = "INATIVO";
+                statusEl.style.background = "rgba(255,255,255,0.08)";
+                statusEl.style.color = "var(--muted)";
+            }
+
+            if (runData.finishedAt) {
+                timeEl.textContent = "Última execução: " + formatarHora(runData.finishedAt);
+            } else {
+                timeEl.textContent = "Nunca executado";
+            }
+        }
+
+        async function obterEventosRecentes() {
+            try {
+                const res = await fetch("/api/data-integration/monitoring/events?minutes=30");
+                if (res.ok) {
+                    const data = await res.json();
+                    const alerts = data.recentAlerts ?? 0;
+                    const occupancy = data.recentOccupancyRecords ?? 0;
+                    document.getElementById("mon-events-count").textContent = `${alerts} alertas, ${occupancy} ocupações`;
+                }
+            } catch (err) {
+                console.error("Erro ao obter eventos recentes:", err);
+            }
+        }
+
+        // ── SCRIPTS DA TAB 2 (OCUPAÇÃO & GESTÃO DE LINHAS) ──
+        async function carregarDadosOcupacao() {
+            try {
+                const panelsResponse = await fetch('/api/panels');
+                if (!panelsResponse.ok) throw new Error(`Erro ao buscar painéis: ${panelsResponse.status}`);
+                const panels = await panelsResponse.json();
+
+                const occupancyByPanel = {};
+                panels.forEach(panel => {
+                    occupancyByPanel[panel.id] = {
+                        panelId:        panel.id,
+                        location:       panel.location,
+                        line:           panel.route ? panel.route.code : null,
+                        totalEntradas:  0,
+                        totalSaidas:    0,
+                        totalOccupancy: 0,
+                        latestTimestamp: null
+                    };
+                });
+
+                const countsResponse = await fetch('/api/passengers/current');
+                if (!countsResponse.ok) throw new Error(`Erro ao buscar contagens: ${countsResponse.status}`);
+                const countsByPanel = await countsResponse.json();
+                
+                const counts = Object.values(countsByPanel).map(count => ({
+                    panelId: count.panelId,
+                    timestamp: count.latestTimestamp,
+                    entryCount: count.totalEntries || 0,
+                    exitCount: count.totalExits || 0,
+                    currentOccupancy: count.currentOccupancy || 0,
+                    line: '-'
+                }));
+
+                counts.forEach(count => {
+                    if (occupancyByPanel[count.panelId]) {
+                        const currentEntry = occupancyByPanel[count.panelId];
+                        const countTimestamp = new Date(count.timestamp);
+                        
+                        if (!currentEntry.latestTimestamp || countTimestamp > currentEntry.latestTimestamp) {
+                            currentEntry.totalEntradas = count.entryCount || 0;
+                            currentEntry.totalSaidas = count.exitCount || 0;
+                            currentEntry.totalOccupancy = count.currentOccupancy || 0;
+                            currentEntry.latestTimestamp = countTimestamp;
+                        }
+                    }
+                });
+
+                const tabela = document.getElementById('tabela-ocupacao');
+                tabela.innerHTML = '';
+
+                const paineis = Object.values(occupancyByPanel);
+
+                if (paineis.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">Sem dados disponíveis de ocupação.</td></tr>';
+                    return;
+                }
+
+                const CAPACIDADE = 55;
+                let temErros = false;
+
+                paineis.forEach(panel => {
+                    const ocup = Math.max(0, Math.min(CAPACIDADE, panel.totalOccupancy));
+                    const percentagem = Math.round((ocup / CAPACIDADE) * 100);
+                    
+                    let cor = 'var(--success)';
+                    let percentagemDisplay = percentagem + '%';
+                    
+                    if (percentagem >= 100) {
+                        cor = 'var(--danger)';
+                        percentagemDisplay = '100% CHEIO';
+                    } else if (percentagem > 80) {
+                        cor = 'var(--danger)';
+                    } else if (percentagem > 60) {
+                        cor = 'var(--warning)';
+                    }
+                    
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${panel.location} (ID: ${panel.panelId})</td>
+                            <td>${panel.line ?? '—'}</td>
+                            <td>${panel.totalEntradas}</td>
+                            <td>${panel.totalSaidas}</td>
+                            <td><strong style="color: ${cor}">${ocup}/${CAPACIDADE}</strong></td>
+                            <td><strong style="color: ${cor}">${percentagemDisplay}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                const alertaSensor = document.getElementById('alerta-sensor');
+                if (temErros && alertaSensor) {
+                    alertaSensor.textContent = '⚠️ ERRO: Ocupação inválida detectada! Verifique se as contagens estão corretas.';
+                    alertaSensor.style.display = 'block';
+                } else if (alertaSensor) {
+                    alertaSensor.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                const tabela = document.getElementById('tabela-ocupacao');
+                if (tabela) {
+                    tabela.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:2rem;">Erro ao carregar: ${error.message}</td></tr>`;
+                }
+                const alertaSensor = document.getElementById('alerta-sensor');
+                if (alertaSensor) alertaSensor.style.display = 'block';
+            }
+        }
+
+        let painelsList = [];
+
+        async function carregarGestaoLinhas() {
+            try {
+                const panelsResponse = await fetch('/api/panels');
+                painelsList = await panelsResponse.json();
+
+                const selectPainel = document.getElementById('painel-select');
+                selectPainel.innerHTML = '<option value="">-- Selecionar Painel --</option>';
+
+                painelsList.forEach(panel => {
+                    const option = document.createElement('option');
+                    option.value = panel.id;
+                    option.textContent = `Painel ${panel.id} - ${panel.location}`;
+                    selectPainel.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar gestão de linhas:', error);
+            }
+        }
+
+        // Listener para dropdown de painéis
+        document.getElementById('painel-select').addEventListener('change', function() {
+            const panelId = this.value;
+            const linhaInput = document.getElementById('linha-input');
+            const locationInput = document.getElementById('painel-location');
+            const infoPainel = document.getElementById('info-painel-atual');
+
+            if (panelId) {
+                const selectedPanel = painelsList.find(p => p.id == panelId);
+                if (selectedPanel) {
+                    locationInput.value = selectedPanel.location;
+                    linhaInput.value = selectedPanel.route ? selectedPanel.route.code : '';
+                    infoPainel.style.display = 'block';
+                    document.getElementById('painel-info-text').textContent = `${selectedPanel.location} (ID: ${selectedPanel.id})`;
+                }
+            } else {
+                locationInput.value = '';
+                linhaInput.value = '';
+                infoPainel.style.display = 'none';
+            }
+        });
+
+        async function guardarLinhaManual() {
+            const panelId = document.getElementById('painel-select').value;
+            const linhaText = document.getElementById('linha-input').value.trim();
+
+            if (!panelId) {
+                alert('Por favor, selecione um painel.');
+                return;
+            }
+
+            if (!linhaText) {
+                alert('Por favor, escreva o código da linha (Rota).');
+                return;
+            }
+
+            try {
+                const routesResponse = await fetch('/api/routes');
+                const routes = await routesResponse.json();
+                const foundRoute = routes.find(r => r.code === linhaText);
+
+                if (!foundRoute) {
+                    alert(`Linha "${linhaText}" não encontrada. Por favor, verifique se a rota existe.`);
+                    return;
+                }
+
+                const updateData = {
+                    route: { id: foundRoute.id }
+                };
+
+                const response = await fetch(`/api/panels/${panelId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    alert(`Painel atualizado com sucesso! Linha: ${linhaText}`);
+                    carregarGestaoLinhas();
+                    carregarDadosOcupacao();
+                    document.getElementById('painel-select').value = '';
+                    document.getElementById('linha-input').value = '';
+                    document.getElementById('painel-location').value = '';
+                    document.getElementById('info-painel-atual').style.display = 'none';
+                } else {
+                    alert('Erro ao atualizar o painel.');
+                }
+            } catch (error) {
+                console.error('Erro ao guardar linha:', error);
+                alert('Erro ao guardar linha.');
+            }
+        }
+    </script>
+</body>
+</html>
