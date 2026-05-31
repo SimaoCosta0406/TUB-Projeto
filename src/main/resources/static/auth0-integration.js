@@ -89,13 +89,18 @@ async function processarLogin() {
 // Função de login com Auth0
 async function loginComAuth0() {
     try {
-        await auth0Client.loginWithRedirect();
+        await auth0Client.loginWithRedirect({
+            authorizationParams: {
+                prompt: 'login'
+            }
+        });
     } catch (erro) {
         console.error('Erro ao iniciar login:', erro);
         const erroMsg = document.getElementById('erro-msg');
         if (erroMsg) erroMsg.style.display = 'block';
     }
 }
+
 
 // Função de logout atualizada para Auth0
 async function fazerLogoutAuth0() {
