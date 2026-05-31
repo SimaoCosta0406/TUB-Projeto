@@ -71,6 +71,7 @@ public class VehicleController {
         vehicle.setStatus(vehicleDetails.getStatus());
         vehicle.setCapacity(vehicleDetails.getCapacity());
         vehicle.setMetadata(vehicleDetails.getMetadata());
+        // NÃO sobrescrever a rota — é gerida pelo assign-route/unassign-route
 
         return ResponseEntity.ok(vehicleRepository.save(vehicle));
     }

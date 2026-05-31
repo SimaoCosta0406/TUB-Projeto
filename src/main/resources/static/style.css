@@ -1362,21 +1362,6 @@ button[id="searchBtn"] {
     overflow: hidden;
 }
 
-#table-reports th,
-#table-reports td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-}
-
-#table-reports th {
-    background: #0ea5e9;
-    color: white;
-}
-
-#table-reports tbody td {
-    color: #1e293b;
-}
 .reports-filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1465,6 +1450,7 @@ button[id="searchBtn"] {
 #table-reports tbody tr:hover {
     background: #f8fafc;
 }
+
 #table-auto-reports {
     width: 100%;
     border-collapse: collapse;
@@ -1496,6 +1482,7 @@ button[id="searchBtn"] {
 #table-auto-reports tbody tr:hover {
     background: #f8fafc;
 }
+
 #table-history {
     width: 100%;
     border-collapse: collapse;

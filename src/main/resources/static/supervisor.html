@@ -65,6 +65,98 @@
         <section class="admin-only" style="padding-top: 2rem;">
             <div class="card-full">
                 <h2>Relatórios Manuais</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
+                    <select id="reportType">
+                        <option value="vehicles">Relatório de Veículos</option>
+                        <option value="routes">Relatório de Rotas</option>
+                        <option value="passengers">Relatório de Passageiros</option>
+                    </select>
+
+                    <input type="datetime-local" id="reportFrom">
+                    <input type="datetime-local" id="reportTo">
+                    <input type="number" id="reportPanelId" placeholder="Panel ID (só passageiros)">
+                </div>
+
+                <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="gerarRelatorioManual()">Gerar Relatório</button>
+                    <button onclick="exportarRelatorioCSV()">Exportar CSV</button>
+                </div>
+
+                <div id="reportSummary" style="margin-bottom: 1rem; color: var(--white);"></div>
+
+                <table id="table-reports">
+                    <thead id="reports-head"></thead>
+                    <tbody id="reports-body">
+                        <tr>
+                            <td style="text-align:center; color:var(--muted); padding:2rem;">
+                                Nenhum relatório gerado ainda.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-only" style="padding-top: 2rem;">
+            <div class="card-full">
+                <h2>Relatórios Automáticos</h2>
+
+                <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="gerarRelatorioAutomatico()">Gerar Relatório Automático</button>
+                    <button onclick="carregarRelatoriosAutomaticos()">Atualizar Lista</button>
+                </div>
+
+                <table id="table-auto-reports">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Gerado em</th>
+                            <th>Automático</th>
+                            <th>Conteúdo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auto-reports-body">
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
+                                A carregar relatórios automáticos...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-only" style="padding-top: 2rem;">
+            <div class="card-full">
+                <h2>Consultar Histórico</h2>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
+                    <input type="number" id="historyPanelId" placeholder="Panel ID">
+                    <input type="datetime-local" id="historyFrom">
+                    <input type="datetime-local" id="historyTo">
+                </div>
+
+                <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="consultarHistoricoPassageiros()">Consultar Histórico</button>
+                </div>
+
+                <div id="historySummary" style="margin-bottom: 1rem; color: var(--white);"></div>
+
+                <table id="table-history">
+                    <thead id="history-head"></thead>
+                    <tbody id="history-body">
+                        <tr>
+                            <td style="text-align:center; color:var(--muted); padding:2rem;">
+                                Nenhuma consulta de histórico realizada ainda.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </section>
 
 
     <!-- Secção de Desempenho Operacional -->
@@ -150,100 +242,6 @@
             </div>
         </div>
     </section>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
-                    <select id="reportType">
-                        <option value="vehicles">Relatório de Veículos</option>
-                        <option value="routes">Relatório de Rotas</option>
-                        <option value="passengers">Relatório de Passageiros</option>
-                    </select>
-
-                    <input type="datetime-local" id="reportFrom">
-                    <input type="datetime-local" id="reportTo">
-                    <input type="number" id="reportPanelId" placeholder="Panel ID (só passageiros)">
-                </div>
-
-                <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="gerarRelatorioManual()">Gerar Relatório</button>
-                    <button onclick="exportarRelatorioCSV()">Exportar CSV</button>
-                    <button onclick="exportarRelatorioPDF()">Exportar PDF</button>
-                </div>
-
-                <div id="reportSummary" style="margin-bottom: 1rem; color: var(--white);"></div>
-
-                <table id="table-reports">
-                    <thead id="reports-head"></thead>
-                    <tbody id="reports-body">
-                        <tr>
-                            <td style="text-align:center; color:var(--muted); padding:2rem;">
-                                Nenhum relatório gerado ainda.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-            </div>
-        </section>
-    </section>
-    <section class="admin-only" style="padding-top: 2rem;">
-        <div class="card-full">
-            <h2>Relatórios Automáticos</h2>
-
-            <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="gerarRelatorioAutomatico()">Gerar Relatório Automático</button>
-                <button onclick="carregarRelatoriosAutomaticos()">Atualizar Lista</button>
-            </div>
-
-            <table id="table-auto-reports">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Gerado em</th>
-                        <th>Automático</th>
-                        <th>Conteúdo</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="auto-reports-body">
-                    <tr>
-                        <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
-                            A carregar relatórios automáticos...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-    <section class="admin-only" style="padding-top: 2rem;">
-        <div class="card-full">
-            <h2>Consultar Histórico</h2>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem;">
-                <input type="number" id="historyPanelId" placeholder="Panel ID">
-                <input type="datetime-local" id="historyFrom">
-                <input type="datetime-local" id="historyTo">
-            </div>
-
-            <div style="margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="consultarHistoricoPassageiros()">Consultar Histórico</button>
-            </div>
-
-            <div id="historySummary" style="margin-bottom: 1rem; color: var(--white);"></div>
-
-            <table id="table-history">
-                <thead id="history-head"></thead>
-                <tbody id="history-body">
-                    <tr>
-                        <td style="text-align:center; color:var(--muted); padding:2rem;">
-                            Nenhuma consulta de histórico realizada ainda.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
->>>>>>> 93e8d41f0c5699a4965995ae9cc901a0ce763e53
     <footer>
         <p>&copy; 2026 TUB Projeto. Todos os direitos reservados.</p>
     </footer>

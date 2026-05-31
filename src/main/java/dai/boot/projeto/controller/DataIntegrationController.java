@@ -1,5 +1,7 @@
 package dai.boot.projeto.controller;
 
+import dai.boot.projeto.repository.PassengerCountRepository;
+import dai.boot.projeto.repository.AlertRepository;
 import dai.boot.projeto.service.DataIngestionService;
 import dai.boot.projeto.service.DataFlowMonitoringService;
 import dai.boot.projeto.service.DataValidationService;
@@ -20,6 +22,8 @@ public class DataIntegrationController {
     @Autowired private DataIngestionService dataIngestionService;
     @Autowired private DataFlowMonitoringService dataFlowMonitoringService;
     @Autowired private DataValidationService dataValidationService;
+    @Autowired private PassengerCountRepository passengerCountRepository;
+    @Autowired private AlertRepository alertRepository;
 
     // ── 5.1 PIPELINES DE INGESTÃO ────────────────────────
 
@@ -109,5 +113,20 @@ public class DataIntegrationController {
         }
         health.put("timestamp", java.time.LocalDateTime.now());
         return health;
+    }
+
+    /** Apagar todos os dados de ocupação e alertas (reset completo) */
+    @PostMapping("/reset")
+    public Map<String, Object> resetAllData() {
+        long deletedOccupancy = passengerCountRepository.count();
+        long deletedAlerts = alertRepository.count();
+        passengerCountRepository.deleteAll();
+        alertRepository.deleteAll();
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Reset efetuado com sucesso");
+        result.put("deletedOccupancyRecords", deletedOccupancy);
+        result.put("deletedAlerts", deletedAlerts);
+        result.put("timestamp", java.time.LocalDateTime.now());
+        return result;
     }
 }
