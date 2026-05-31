@@ -7,103 +7,112 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin: 1rem 0 2rem 0;
-        }
+    body {
+        background: #f5f7fb !important;
+    }
 
-        .analytics-card {
-            background: #0b1f36;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 1.2rem;
-            color: white;
-        }
+    .admin-only {
+        background: #f5f7fb !important;
+        padding: 40px 0 60px 0 !important;
+    }
 
-        .analytics-card h3 {
-            margin-bottom: 0.5rem;
-            color: #94a3b8;
-            font-size: 0.95rem;
-        }
+    .card-full {
+        background: #ffffff !important;
+        border-radius: 18px !important;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+        border: 1px solid rgba(15, 23, 42, 0.06) !important;
+        padding: 28px !important;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+    }
 
-        .analytics-card p {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin: 0;
-            color: #f8fafc;
-        }
+    .card-full h2 {
+        color: #12385b !important;
+        font-size: 22px !important;
+        font-weight: 800 !important;
+        margin-bottom: 18px !important;
+        padding-bottom: 12px !important;
+        border-bottom: 3px solid #1da1f2 !important;
+    }
 
-        .insight-box {
-            background: #0b1f36;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 1rem;
-            color: #e2e8f0;
-            margin-bottom: 1rem;
-        }
+    .analytics-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+        gap: 16px !important;
+        margin: 22px 0 !important;
+    }
 
-        .insight-box strong {
-            color: #f59e0b;
-        }
+    .analytics-card {
+        background: #071b33 !important;
+        border-radius: 14px !important;
+        padding: 22px !important;
+        color: white !important;
+    }
 
-        .filters-box {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin-bottom: 1rem;
-        }
+    .analytics-card h3 {
+        color: #b8c7da !important;
+        font-size: 15px !important;
+        margin-bottom: 10px !important;
+    }
 
-        .filters-box select {
-            width: 100%;
-            padding: 0.85rem 1rem;
-            background: #0b1f36;
-            border: 1px solid rgba(255,255,255,0.14);
-            color: #f8fafc;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            box-sizing: border-box;
-        }
+    .analytics-card p {
+        color: white !important;
+        font-size: 28px !important;
+        font-weight: 800 !important;
+        margin: 0 !important;
+    }
 
-        .analytics-btn {
-            background: #f59e0b;
-            color: #0f172a;
-            border: none;
-            padding: 0.85rem 1.4rem;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+    .filters-box select {
+        background: #0b1f36 !important;
+        color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 12px 14px !important;
+    }
 
-        #insightsTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-        }
+    .analytics-btn {
+        background: #f59e0b !important;
+        color: #0f172a !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 12px 18px !important;
+        font-weight: 800 !important;
+    }
 
-        #insightsTable th,
-        #insightsTable td {
-            padding: 12px 14px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
+    .insight-box {
+        background: #ffffff !important;
+        color: #1e293b !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 18px !important;
+        margin: 22px 0 !important;
+    }
 
-        #insightsTable th {
-            background: #0ea5e9;
-            color: white;
-        }
+    #insightsTable {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 16px !important;
+        background: #ffffff !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+    }
 
-        #insightsTable tbody td {
-            color: #1e293b;
-            font-weight: 500;
-        }
-        
-    </style>
+    #insightsTable th,
+    #insightsTable td {
+        padding: 14px 16px !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        text-align: left !important;
+    }
+
+    #insightsTable th {
+        background: #1da1f2 !important;
+        color: white !important;
+    }
+
+    #insightsTable tbody td {
+        color: #1e293b !important;
+    }
+</style>
 </head>
 <body>
     <nav class="navbar">
@@ -168,7 +177,9 @@
             </div>
             <div class="card-full" style="margin-bottom: 1.5rem;">
                 <h2>Dashboard Operacional</h2>
-                <canvas id="vehiclesChart" height="100"></canvas>
+                <div class="chart-wrapper">
+                    <canvas id="vehiclesChart"></canvas>
+                </div>
             </div>
             <div id="analyticsSummary" class="insight-box">
                 A carregar análise...
@@ -383,35 +394,56 @@
                     labels: ['Em serviço', 'Fora de serviço', 'Manutenção'],
                     datasets: [{
                         label: 'Veículos',
-                        data: [inService, outOfService, maintenance]
+                        data: [inService, outOfService, maintenance],
+                        backgroundColor: [
+                            '#22c55e',
+                            '#ef4444',
+                            '#f59e0b'
+                        ],
+                        borderColor: [
+                            '#16a34a',
+                            '#dc2626',
+                            '#d97706'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             labels: {
-                                color: '#f8fafc'
+                                color: '#1e293b',
+                                font: {
+                                    weight: 'bold'
+                                }
                             }
                         }
                     },
                     scales: {
                         x: {
                             ticks: {
-                                color: '#f8fafc'
+                                color: '#1e293b',
+                                font: {
+                                    weight: 'bold'
+                                }
                             },
                             grid: {
-                                color: 'rgba(255,255,255,0.08)'
+                                color: 'rgba(15, 23, 42, 0.08)'
                             }
                         },
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                color: '#f8fafc',
-                                precision: 0
+                                color: '#1e293b',
+                                precision: 0,
+                                font: {
+                                    weight: 'bold'
+                                }
                             },
                             grid: {
-                                color: 'rgba(255,255,255,0.08)'
+                                color: 'rgba(15, 23, 42, 0.08)'
                             }
                         }
                     }

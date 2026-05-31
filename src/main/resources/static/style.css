@@ -1526,3 +1526,605 @@ button[id="searchBtn"] {
 #table-history tbody tr:hover {
     background: #f8fafc;
 }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg-main);
+    color: var(--white);
+    line-height: 1.5;
+}
+
+.container {
+    width: 92%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.navbar {
+    background: var(--bg-dark);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 0;
+}
+
+.navbar .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.logo {
+    height: 64px;
+    width: auto;
+    display: block;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: nowrap;
+}
+
+.nav-links li {
+    margin: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--white);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 10px 14px;
+    border-radius: 10px;
+    transition: 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-links a:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--orange);
+}
+
+#nav-logout a {
+    border: 1px solid var(--orange);
+    color: var(--orange);
+}
+
+#nav-logout a:hover {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--orange-hover);
+}
+
+.hero {
+    padding: 70px 0 50px 0;
+    background: linear-gradient(180deg, #18314b 0%, #142b42 100%);
+}
+
+.hero .container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.hero h1 {
+    font-size: 62px;
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--white);
+}
+
+.hero p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 700px;
+}
+
+.btn-primary,
+button {
+    background: var(--orange);
+    color: #0f172a;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-primary:hover,
+button:hover {
+    background: var(--orange-hover);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.section {
+    padding: 40px 0;
+}
+
+.card-full,
+.card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.card-full h2,
+.card h2 {
+    color: var(--orange);
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.info-card {
+    background: #0a223d;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.info-card h3 {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.info-card p {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--white);
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: #0b1f36;
+    color: var(--white);
+    font-size: 15px;
+    outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.table-wrapper {
+    margin-top: 18px;
+    overflow-x: auto;
+    border-radius: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--table-bg);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+th,
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+th {
+    background: var(--blue-light);
+    color: white;
+    font-weight: 700;
+}
+
+tbody td {
+    color: var(--table-text);
+    font-weight: 500;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.badge-success {
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+}
+
+.badge-warning {
+    background: rgba(245,158,11,0.15);
+    color: #f59e0b;
+}
+
+.badge-danger {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+}
+
+footer {
+    background: var(--bg-dark);
+    color: var(--muted);
+    text-align: center;
+    padding: 18px 10px;
+    margin-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+@media (max-width: 1000px) {
+    .navbar .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+    }
+
+    .hero h1 {
+        font-size: 42px;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero h1 {
+        font-size: 32px;
+    }
+
+    .logo {
+        height: 52px;
+    }
+}
+#vehiclesTable tbody td {
+    color: #1e293b;
+    font-weight: 500;
+}
+tbody td {
+    color: #1e293b !important;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+.btn-edit {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-edit:hover {
+    background-color: #0056b3;
+}
+/* ===== VEICULOS.HTML ===== */
+.vehicle-management-card h2,
+#vehicles-section h2,
+.card-full h2 {
+    color: #1e293b !important;
+    opacity: 1 !important;
+}
+
+#vehiclesTable td,
+#vehiclesTable th,
+#table-veiculos td,
+#table-veiculos th {
+    color: #1e293b !important;
+    opacity: 1 !important;
+}
+
+#vehiclesTable button,
+#table-veiculos button {
+    opacity: 1 !important;
+}
+
+#vehiclesTable .btn-edit,
+#table-veiculos .btn-edit,
+#vehiclesTable .btn-acao,
+#table-veiculos .btn-acao {
+    color: #ffffff !important;
+    background: #0ea5e9 !important;
+    border: none !important;
+}
+
+#vehiclesTable .btn-acao[style*="e74c3c"],
+#table-veiculos .btn-acao[style*="e74c3c"] {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+#vehiclesTable .btn-acao[style*="3498db"],
+#table-veiculos .btn-acao[style*="3498db"] {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+}
+/* ===== BOTÕES DA TABELA DE VEÍCULOS ===== */
+#vehiclesTable button,
+#table-veiculos button {
+    opacity: 1 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+}
+
+/* Estilos dos botões de ação dos veículos */
+button {
+    color: white; /* Define a cor do texto para branco */
+    font-weight: bold;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Botões específicos */
+button[onclick^="abrirEditarVeiculo"] {
+    background-color: #ff7700; /* Azul */
+}
+
+button[onclick^="abrirGerenciarRota"] {
+    background-color: #17a2b8; /* Azul claro */
+}
+
+button[onclick^="apagarVeiculo"] {
+    background-color: #e74c3c; /* Vermelho */
+}
+
+/* Hover para botões */
+button:hover {
+    opacity: 0.85;
+}
+/* ===== AÇÕES DA TABELA DE VEÍCULOS ===== */
+button[onclick^="abrirEditarVeiculo"] {
+    background: #f59e0b !important;
+    color: #ffffff !important;
+    border: 1px solid #f59e0b !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+    opacity: 1 !important;
+}
+
+button[onclick^="abrirEditarVeiculo"]:hover {
+    background: #d97706 !important;
+    border-color: #d97706 !important;
+}
+
+button[onclick^="abrirGerenciarRota"] {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border: 1px solid #3b82f6 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+    opacity: 1 !important;
+}
+
+button[onclick^="abrirGerenciarRota"]:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+button[onclick^="apagarVeiculo"] {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 1px solid #ef4444 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+    opacity: 1 !important;
+}
+
+button[onclick^="apagarVeiculo"]:hover {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+/* ===== GESTÃO DE UTILIZADORES ===== */
+#table-users button,
+#usersTable button,
+#admin-users-table button,
+#userTable button {
+    opacity: 1 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+/* Botão gerir roles */
+#table-users button:first-child,
+#usersTable button:first-child,
+#admin-users-table button:first-child,
+#userTable button:first-child {
+    background: #f59e0b !important;
+}
+
+#table-users button:first-child:hover,
+#usersTable button:first-child:hover,
+#admin-users-table button:first-child:hover,
+#userTable button:first-child:hover {
+    background: #d97706 !important;
+}
+
+/* Botão apagar */
+#table-users button:last-child,
+#usersTable button:last-child,
+#admin-users-table button:last-child,
+#userTable button:last-child {
+    background: #ef4444 !important;
+}
+
+#table-users button:last-child:hover,
+#usersTable button:last-child:hover,
+#admin-users-table button:last-child:hover,
+#userTable button:last-child:hover {
+    background: #dc2626 !important;
+}
+/* ===== ANALITICA - ESTILO GERAL ===== */
+
+.analytics-page,
+.admin-only {
+    background: #f5f7fb !important;
+}
+
+.analytics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 16px !important;
+    margin: 22px 0 !important;
+}
+
+.analytics-card {
+    background: #071b33 !important;
+    border-radius: 14px !important;
+    padding: 22px !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.analytics-card h3 {
+    color: #b8c7da !important;
+    font-size: 15px !important;
+    margin-bottom: 10px !important;
+}
+
+.analytics-card p {
+    color: white !important;
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+}
+
+.filters-box {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 14px !important;
+    margin: 18px 0 !important;
+}
+
+.filters-box select {
+    background: #0b1f36 !important;
+    color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 12px 14px !important;
+}
+
+.analytics-btn {
+    background: #f59e0b !important;
+    color: #0f172a !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 18px !important;
+    font-weight: 800 !important;
+}
+
+.analytics-btn:hover {
+    background: #fbbf24 !important;
+}
+
+.insight-box {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 18px !important;
+    margin: 22px 0 !important;
+}
+
+#insightsTable {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 16px !important;
+    background: #ffffff !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+}
+
+#insightsTable th,
+#insightsTable td {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    text-align: left !important;
+}
+
+#insightsTable th {
+    background: #1da1f2 !important;
+    color: white !important;
+    font-weight: 800 !important;
+}
+
+#insightsTable tbody td {
+    color: #1e293b !important;
+}
+
+#insightsTable tbody tr:hover {
+    background: #f8fafc !important;
+}
+.chart-wrapper {
+    width: 100% !important;
+    height: 420px !important;
+    position: relative !important;
+}
+
+#vehiclesChart {
+    background: #ffffff !important;
+}
