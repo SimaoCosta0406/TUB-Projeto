@@ -1353,7 +1353,6 @@ button[id="searchBtn"] {
 #nav-logout a:hover {
     background: rgba(245, 158, 11, 0.12);
 }
-<<<<<<< Updated upstream
 #table-reports {
     width: 100%;
     border-collapse: collapse;
@@ -1362,8 +1361,6 @@ button[id="searchBtn"] {
     border-radius: 8px;
     overflow: hidden;
 }
-=======
->>>>>>> Stashed changes
 
 .reports-filters {
     display: grid;

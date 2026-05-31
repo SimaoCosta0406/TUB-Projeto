@@ -1,7 +1,7 @@
 package dai.boot.projeto.entities;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +32,7 @@ public class Route {
     private String metadata;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonIgnoreProperties({"route"})
     private List<Vehicle> vehicles = new ArrayList<>();
 
     // -------- CONSTRUTORES --------

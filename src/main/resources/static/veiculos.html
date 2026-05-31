@@ -329,7 +329,7 @@
 
                 let optionsHtml = '<option value="">-- Sem Rota --</option>';
                 rotas.forEach(rota => {
-                    const selected = currentRouteId === rota.id ? 'selected' : '';
+                    const selected = String(currentRouteId) === String(rota.id) ? 'selected' : '';
                     optionsHtml += `<option value="${rota.id}" ${selected}>${rota.code} (${rota.origin} → ${rota.destination})</option>`;
                 });
 

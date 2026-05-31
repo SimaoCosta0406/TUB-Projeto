@@ -130,7 +130,11 @@ public class PassengerService {
     public Map<Long, Map<String, Object>> getCurrentCountsPerPanel() {
         Map<Long, Map<String, Object>> currentCounts = new HashMap<>();
 
-        for (PassengerCount count : repository.findAll()) {
+        // Usar apenas dados das últimas 8 horas (janela operacional)
+        LocalDateTime windowStart = LocalDateTime.now().minusHours(8);
+        List<PassengerCount> recentCounts = repository.findByTimestampAfter(windowStart);
+
+        for (PassengerCount count : recentCounts) {
             if (count.getPanelId() == null) {
                 continue;
             }

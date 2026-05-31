@@ -1,7 +1,7 @@
 package dai.boot.projeto.entities;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Objects;
 
 @Entity
@@ -22,9 +22,9 @@ public class Vehicle {
 
     private Integer capacity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "route_id")
-    @JsonBackReference
+    @JsonIgnoreProperties({"vehicles", "stops", "metadata", "hibernateLazyInitializer", "handler"})
     private Route route;
 
     @Column(columnDefinition = "text")
